@@ -34,20 +34,50 @@ def request(path):
                 return response                 
 
 class JSONDecoder(dict):
-    '''Utility function that decodes JSON into a python object'''
-    def __init__(self, dict_):
-        super(JSONDecoder, self).__init__(dict_)
-        for key in self:
-            item = self[key]
-            if isinstance(item, list):
-                for id, it in enumerate(item):
-                    if isinstance(it, dict):
-                        item[id] = self.__class__(it)
-            elif isinstance(item, dict):
-                self[key] = self.__class__(item)
+     '''Utility function that decodes JSON into a python object'''
+    
+     label_=None    
+    
+     def __init__(self, dict_):
+         super(JSONDecoder, self).__init__(dict_)
+         for key in self:
+             item = self[key]
+             if isinstance(item, list):
+                 for id, it in enumerate(item):
+                     if isinstance(it, dict):
+                         item[id] = self.__class__(it)
+             elif isinstance(item, dict):
+                 self[key] = self.__class__(item)
 
-    def __getattr__(self, key):
-        return self[key]
+     def __getattr__(self, key):
+         return self[key]
+        
+     '''
+
+      Retrieve a category by its uriTag.
+      @param uriTag the uriTag of the Category
+      @return
+     
+     '''
+    
+     @classmethod 
+     def get(cls,uriTag):
+         return Category(request(cls.label_ + '/' + str(uriTag)))
+    
+     '''
+    
+       Retrieves all available categories
+       @return a list of categories
+    
+     '''
+       
+     @classmethod    
+     def find_all(cls):
+         categories=[]
+       
+         for category in request('categories'):
+                 categories.append(JSONDecoder(category))    
+         return categories
 
 class Category(JSONDecoder):
     
@@ -57,32 +87,7 @@ class Category(JSONDecoder):
         
         super(self.__class__, self).__init__(dict_)
    
-    '''
-
-      Retrieve a category by its uriTag.
-      @param uriTag the uriTag of the Category
-      @return
-     
-    '''
-    
-    @classmethod 
-    def get(cls,uriTag):
-        return Category(request(cls.label_ + '/' + str(uriTag)))
-    
-    '''
-    
-      Retrieves all available categories
-      @return a list of categories
-    
-    '''
-       
-    @classmethod    
-    def find_all(cls):
-        categories=[]
-       
-        for category in request('categories'):
-                categories.append(JSONDecoder(category))    
-        return categories
+   
        
 class Section(JSONDecoder):
     
@@ -92,35 +97,6 @@ class Section(JSONDecoder):
         
         super(self.__class__, self).__init__(dict_)
    
-    '''
-
-      Retrieve a Section by its uriTag.
-      @param uriTag the uriTag of the Section
-      @return
-     
-    '''
-    
-    @classmethod 
-    def get(cls,uriTag):
-        return Section(request(cls.label_ + '/' + str(uriTag)))
-    
-    '''
-    
-      Retrieves all available categories
-      @return a list of categories
-    
-    '''
-       
-    @classmethod    
-    def find_all(cls):
-        sections=[]
-       
-        for section in request('sections'):
-                sections.append(JSONDecoder(section))    
-        return sections
-
-
-
 
 class Time_series(object):
     
