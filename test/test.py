@@ -249,7 +249,7 @@ class TestIcaneMetadata(unittest.TestCase):
                           'not a json object')
         self.assertTrue(metadata.Source(
                         metadata.request('source/45')).label
-                        == 'Censo agrario.' +
+                        == 'Censo agrario. ' +
                         'Instituto Nacional de Estadística (INE)')
 
     def test_get_source(self):
@@ -306,6 +306,28 @@ class TestIcaneMetadata(unittest.TestCase):
         time_periods = metadata.TimePeriod.find_all()
         self.assertTrue(len(time_periods) > 300)
         self.assertTrue(time_periods.index(metadata.TimePeriod.get('426')))
+
+    def test_unif_of_measure(self):
+
+        self.assertRaises(ValueError, metadata.UnitOfMeasure,
+                          'not a json object')
+        self.assertTrue(metadata.UnitOfMeasure(
+                        metadata.request('unit-of-measure/1')).title
+                        == 'Años')
+
+    def test_unit_of_measure(self):
+
+        self.assertRaises(urllib2.HTTPError, metadata.UnitOfMeasure.get, 9999)
+        self.assertTrue(metadata.UnitOfMeasure.get(320).title
+                        == 'Número de bibliotecas y ' +
+                        'Número de equipos de reproducción')
+
+    def test_units_of_measure(self):
+
+        units_of_measure = metadata.UnitOfMeasure.find_all()
+        self.assertTrue(len(units_of_measure) > 300)
+        self.assertTrue(units_of_measure.index(
+                        metadata.UnitOfMeasure.get('45')))
 
 if __name__ == '__main__':
     unittest.main()

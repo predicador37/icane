@@ -219,10 +219,10 @@ class TimePeriod(JSONDecoder):
 
 
 class Time_series(object):
-    
+
     label_ = 'time-series'
     plabel_ = 'time-series-list'
-    
+
     def __init__(self):
         pass
 
@@ -233,3 +233,13 @@ class Time_series(object):
         for time_series in time_series_array:
             time_series_list.append(JSONDecoder(time_series))
         return time_series_list
+
+
+class UnitOfMeasure(JSONDecoder):
+
+    label_ = 'unit-of-measure'
+    plabel_ = 'units-of-measure'
+
+    def __init__(self, dict_):
+
+        super(self.__class__, self).__init__(dict_)
