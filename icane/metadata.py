@@ -218,20 +218,40 @@ class TimePeriod(JSONDecoder):
         super(self.__class__, self).__init__(dict_)
 
 
-class Time_series(object):
+class TimeSeries(JSONDecoder):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
 
-    def __init__(self):
-        pass
+    def __init__(self, dict_):
 
-    def find_all_by_category(self, category_uri_tag):
+        super(self.__class__, self).__init__(dict_)
+
+    @classmethod
+    def find_all_by_category(cls, category_uri_tag):
         time_series_list = []
-        time_series_array = self.request(category_uri_tag +
-                                         self.plabel_)
+        time_series_array = request(category_uri_tag + '/' +
+                                         cls.plabel_)
         for time_series in time_series_array:
-            time_series_list.append(JSONDecoder(time_series))
+            time_series_list.append(TimeSeries(time_series))
+        return time_series_list
+
+    @classmethod
+    def find_all_by_category_and_section(cls, category_uri_tag,
+                                         section_uri_tag,
+                                         node_type_uri_tag='all'):
+        time_series_list = []
+        if (node_type_uri_tag == 'all'):
+            time_series_array = request(category_uri_tag + '/' +
+                                        section_uri_tag + '/' +
+                                        cls.plabel_)
+        else:
+            time_series_array = request(category_uri_tag + '/' +
+                                        section_uri_tag + '/' +
+                                        cls.plabel_ + '?nodeType=' +
+                                        node_type_uri_tag)
+        for time_series in time_series_array:
+            time_series_list.append(TimeSeries(time_series))
         return time_series_list
 
 

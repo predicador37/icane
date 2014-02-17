@@ -307,6 +307,46 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertTrue(len(time_periods) > 300)
         self.assertTrue(time_periods.index(metadata.TimePeriod.get('426')))
 
+    def test_time_series(self):
+
+        self.assertRaises(ValueError, metadata.TimeSeries,
+                          'not a json object')
+        self.assertTrue(metadata.TimeSeries(
+                        metadata.request('time-series/232')).title
+                        == 'Afiliados medios mensuales en alta laboral')
+
+    def test_get_time_series(self):
+
+        self.assertRaises(urllib2.HTTPError,
+                          metadata.TimeSeries.get, 'quarterly-account')
+        self.assertTrue(metadata.TimeSeries.get('quarterly-accounting-' +
+        'cantabria-base-2008-current-prices').title == 'Precios corrientes')
+
+        self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
+        self.assertTrue(metadata.TimeSeries.get(5036).title
+                        == 'Nomenclátor Cantabria')
+
+    def test_get_time_series_list_by_category(self):
+
+        time_series_list = metadata.TimeSeries.find_all_by_category(
+                           'historical-data')
+        self.assertTrue(len(time_series_list) > 50)
+        self.assertTrue(time_series_list.index(
+                        metadata.TimeSeries.get('unemployment-employment')))
+
+    def test_get_time_series_list_by_category_and_section_(self):
+
+        data_set_list = metadata.TimeSeries.find_all_by_category_and_section(
+                           'municipal-data', 'society')
+        time_series_list = metadata.TimeSeries.find_all_by_category_and_section(
+                           'municipal-data', 'society', 'time-series')
+        self.assertTrue(len(data_set_list) > 15)
+        self.assertTrue(len(time_series_list) > 50)
+        self.assertTrue(time_series_list.index(
+                        metadata.TimeSeries.get('census-homes-average-size')))
+        self.assertTrue(data_set_list.index(
+                        metadata.TimeSeries.get('elections-municipal')))
+
     def test_unif_of_measure(self):
 
         self.assertRaises(ValueError, metadata.UnitOfMeasure,
