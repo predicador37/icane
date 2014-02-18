@@ -228,28 +228,50 @@ class TimeSeries(JSONDecoder):
         super(self.__class__, self).__init__(dict_)
 
     @classmethod
-    def find_all_by_category(cls, category_uri_tag):
+    def find_all_dataset_nodes(cls,
+                          category_uri_tag,
+                          section_uri_tag,
+                          subsection_uri_tag):
         time_series_list = []
         time_series_array = request(category_uri_tag + '/' +
-                                         cls.plabel_)
+                                    section_uri_tag + '/' +
+                                    subsection_uri_tag + '/' +
+                                    'data-sets')
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
 
     @classmethod
-    def find_all_by_category_and_section(cls, category_uri_tag,
-                                         section_uri_tag,
-                                         node_type_uri_tag='all'):
+    def find_all(cls, category_uri_tag=None,
+                      section_uri_tag=None,
+                      subsection_uri_tag=None,
+                      node_type_uri_tag=None):
+        
         time_series_list = []
-        if (node_type_uri_tag == 'all'):
+        if (category_uri_tag and
+            section_uri_tag and
+            subsection_uri_tag):
             time_series_array = request(category_uri_tag + '/' +
                                         section_uri_tag + '/' +
+                                        subsection_uri_tag + '/' +
                                         cls.plabel_)
-        else:
+        elif (category_uri_tag and
+              section_uri_tag and
+              node_type_uri_tag):
             time_series_array = request(category_uri_tag + '/' +
                                         section_uri_tag + '/' +
                                         cls.plabel_ + '?nodeType=' +
                                         node_type_uri_tag)
+        elif (category_uri_tag and section_uri_tag):
+            time_series_array = request(category_uri_tag + '/' +
+                                        section_uri_tag + '/' +
+                                        cls.plabel_)
+        elif (category_uri_tag):
+            time_series_array = request(category_uri_tag + '/' +
+                                         cls.plabel_)
+        else:
+            pass
+        
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list

@@ -15,7 +15,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
     def setUp(self):
         pass
-
+    '''
     def test_category(self):
 
         self.assertRaises(ValueError, metadata.Category, 'not a json object')
@@ -38,8 +38,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         categories = metadata.Category.find_all()
         self.assertTrue(len(categories) == 4)
-        self.assertTrue(categories.index(
-                        metadata.Category.get('municipal-data')))
+        self.assertTrue(metadata.Category.get('municipal-data') in categories)
 
     def test_data_provider(self):
 
@@ -65,7 +64,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         data_providers = metadata.DataProvider.find_all()
         self.assertTrue(len(data_providers) > 100)
-        self.assertTrue(data_providers.index(metadata.DataProvider.get('20')))
+        self.assertTrue(metadata.DataProvider.get('20') in data_providers)
 
     def test_data_set(self):
 
@@ -88,8 +87,8 @@ class TestIcaneMetadata(unittest.TestCase):
 
         data_sets = metadata.DataSet.find_all()
         self.assertTrue(len(data_sets) > 100)
-        self.assertTrue(data_sets.index(
-                        metadata.DataSet.get('regional-accounts-1995')))
+        self.assertTrue(metadata.DataSet.get('regional-accounts-1995')
+                        in data_sets)
 
     def test_link(self):
 
@@ -110,7 +109,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         links = metadata.Link.find_all()
         self.assertTrue(len(links) > 200)
-        self.assertTrue(links.index(metadata.Link.get('873')))
+        self.assertTrue(metadata.Link.get('873') in links)
 
     def test_link_type(self):
 
@@ -130,7 +129,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         link_types = metadata.LinkType.find_all()
         self.assertTrue(len(link_types) == 8)
-        self.assertTrue(link_types.index(metadata.LinkType.get('4')))
+        self.assertTrue(metadata.LinkType.get('4') in link_types)
 
     def test_measure(self):
 
@@ -150,7 +149,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         measures = metadata.Measure.find_all()
         self.assertTrue(len(measures) > 3000)
-        self.assertTrue(measures.index(metadata.Measure.get('1503')))
+        self.assertTrue(metadata.Measure.get('1503') in measures)
 
     def test_node_type(self):
 
@@ -170,7 +169,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         node_types = metadata.NodeType.find_all()
         self.assertTrue(len(node_types) >= 10)
-        self.assertTrue(node_types.index(metadata.NodeType.get('4')))
+        self.assertTrue(metadata.NodeType.get('4') in node_types)
 
     def test_periodicity(self):
 
@@ -193,8 +192,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         periodicities = metadata.Periodicity.find_all()
         self.assertTrue(len(periodicities) == 12)
-        self.assertTrue(periodicities.index(
-                        metadata.Periodicity.get('irregular')))
+        self.assertTrue(metadata.Periodicity.get('irregular') in periodicities)
 
     def test_reference_area(self):
 
@@ -218,8 +216,8 @@ class TestIcaneMetadata(unittest.TestCase):
 
         reference_areas = metadata.ReferenceArea.find_all()
         self.assertTrue(len(reference_areas) >= 6)
-        self.assertTrue(reference_areas.index(
-                        metadata.ReferenceArea.get('municipal')))
+        self.assertTrue(metadata.ReferenceArea.get('municipal')
+                        in reference_areas)
 
     def test_section(self):
 
@@ -241,7 +239,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         sections = metadata.Section.find_all()
         self.assertTrue(len(sections) == 5)
-        self.assertTrue(sections.index(metadata.Section.get('synthesis')))
+        self.assertTrue(metadata.Section.get('synthesis') in sections)
 
     def test_source(self):
 
@@ -264,7 +262,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         sources = metadata.Source.find_all()
         self.assertTrue(len(sources) > 500)
-        self.assertTrue(sources.index(metadata.Source.get('456')))
+        self.assertTrue(metadata.Source.get('456') in sources)
 
     def test_subsection(self):
 
@@ -286,7 +284,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         subsections = metadata.Subsection.find_all()
         self.assertTrue(len(subsections) > 20)
-        self.assertTrue(subsections.index(metadata.Subsection.get('6')))
+        self.assertTrue(metadata.Subsection.get('6') in subsections)
 
     def test_time_period(self):
 
@@ -305,8 +303,8 @@ class TestIcaneMetadata(unittest.TestCase):
 
         time_periods = metadata.TimePeriod.find_all()
         self.assertTrue(len(time_periods) > 300)
-        self.assertTrue(time_periods.index(metadata.TimePeriod.get('426')))
-
+        self.assertTrue(metadata.TimePeriod.get('426') in time_periods)
+    
     def test_time_series(self):
 
         self.assertRaises(ValueError, metadata.TimeSeries,
@@ -325,27 +323,47 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
-
+    '''
     def test_get_time_series_list_by_category(self):
 
-        time_series_list = metadata.TimeSeries.find_all_by_category(
-                           'historical-data')
+        time_series_list = metadata.TimeSeries.find_all('historical-data')
         self.assertTrue(len(time_series_list) > 50)
-        self.assertTrue(time_series_list.index(
-                        metadata.TimeSeries.get('unemployment-employment')))
+        self.assertTrue(metadata.TimeSeries.get('unemployment-employment')
+                        in time_series_list)
 
-    def test_get_time_series_list_by_category_and_section_(self):
+    def test_get_time_series_list_by_category_and_section(self):
 
-        data_set_list = metadata.TimeSeries.find_all_by_category_and_section(
-                           'municipal-data', 'society')
-        time_series_list = metadata.TimeSeries.find_all_by_category_and_section(
-                           'municipal-data', 'society', 'time-series')
+        data_set_list = metadata.TimeSeries.find_all('municipal-data',
+                                                     'society')
+        time_series_list = metadata.TimeSeries.find_all('municipal-data',
+                                                        'society',
+                                                        node_type_uri_tag =
+                                                        'time-series')
         self.assertTrue(len(data_set_list) > 15)
         self.assertTrue(len(time_series_list) > 50)
-        self.assertTrue(time_series_list.index(
-                        metadata.TimeSeries.get('census-homes-average-size')))
-        self.assertTrue(data_set_list.index(
-                        metadata.TimeSeries.get('elections-municipal')))
+        self.assertTrue(metadata.TimeSeries.get('census-homes-size')
+                        in time_series_list)                        
+        self.assertTrue(metadata.TimeSeries.get('elections-municipal')
+                        in data_set_list)
+    #TODO: comprobar que el resultado de esta funcion es el mismo que con node-type=data-set
+    def test_get_dataset_nodes(self):
+
+        data_set_list = metadata.TimeSeries.find_all_dataset_nodes(
+                           'regional-data', 'economy', 'labour-market')
+        self.assertTrue(len(data_set_list) >= 3)
+        self.assertTrue(metadata.TimeSeries.get('labour-societies')
+                        in data_set_list)
+                        
+    def test_get_time_series_list_by_category_and_section_and_subsection(self):
+
+        data_set_list = metadata.TimeSeries.find_all('regional-data',
+                                                     'economy',
+                                                     'labour-market')
+        self.assertTrue(len(data_set_list) >= 3)
+        for time_series in data_set_list:
+            print time_series.uriTag
+        self.assertTrue(metadata.TimeSeries.get('social-protection')
+                        in data_set_list)
 
     def test_unif_of_measure(self):
 
@@ -366,8 +384,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
         units_of_measure = metadata.UnitOfMeasure.find_all()
         self.assertTrue(len(units_of_measure) > 300)
-        self.assertTrue(units_of_measure.index(
-                        metadata.UnitOfMeasure.get('45')))
+        self.assertTrue(metadata.UnitOfMeasure.get('45') in units_of_measure)
 
 if __name__ == '__main__':
     unittest.main()
