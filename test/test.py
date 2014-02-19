@@ -15,7 +15,7 @@ class TestIcaneMetadata(unittest.TestCase):
 
     def setUp(self):
         pass
-    '''
+    
     def test_category(self):
 
         self.assertRaises(ValueError, metadata.Category, 'not a json object')
@@ -39,7 +39,18 @@ class TestIcaneMetadata(unittest.TestCase):
         categories = metadata.Category.find_all()
         self.assertTrue(len(categories) == 4)
         self.assertTrue(metadata.Category.get('municipal-data') in categories)
-
+    
+    def test_get_class(self):
+        self.assertTrue(metadata.Class.get('time-series','es').fields[0].name
+                        == 'active')
+                        
+    #Uncomment when proper content is returned in AIP    
+    '''
+    def test_get_classes(self):
+        self.assertTrue(metadata.Class.find_all('en').classes[1].name 
+                        == 'DataSet')
+    '''
+    
     def test_data_provider(self):
 
         self.assertRaises(ValueError,
@@ -323,6 +334,16 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
+    
+    ''' 
+    #Uncomment when method is implemented in API
+    def test_get_time_series_parent(self):
+        self.assertTrue(metadata.TimeSeries.get_parent('terrain-series')
+                        == metadata.TimeSeries.get('terrain'))
+                        
+    def test_get_time_series_parents(self):
+        self.assertTrue(metadata.TimeSeries.get('terrain')
+                        in metadata.TimeSeries.get_parents('terrain-series'))
     '''
     def test_get_time_series_list_by_category(self):
 
@@ -336,23 +357,35 @@ class TestIcaneMetadata(unittest.TestCase):
         data_set_list = metadata.TimeSeries.find_all('municipal-data',
                                                      'society')
         time_series_list = metadata.TimeSeries.find_all('municipal-data',
-                                                        'society',
+                                                        'territory-environment',
                                                         node_type_uri_tag =
                                                         'time-series')
         self.assertTrue(len(data_set_list) > 15)
-        self.assertTrue(len(time_series_list) > 50)
-        self.assertTrue(metadata.TimeSeries.get('census-homes-size')
+        self.assertTrue(len(time_series_list) > 40)
+        self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
         self.assertTrue(metadata.TimeSeries.get('elections-municipal')
                         in data_set_list)
     #TODO: comprobar que el resultado de esta funcion es el mismo que con node-type=data-set
-    def test_get_dataset_nodes(self):
+    def test_get_time_series_datasets(self):
 
-        data_set_list = metadata.TimeSeries.find_all_dataset_nodes(
+        data_set_list = metadata.TimeSeries.find_all_datasets(
                            'regional-data', 'economy', 'labour-market')
         self.assertTrue(len(data_set_list) >= 3)
         self.assertTrue(metadata.TimeSeries.get('labour-societies')
                         in data_set_list)
+                        
+    def test_get_time_series_possible_subsections(self):
+        subsections = metadata.TimeSeries.get_possible_subsections(
+                      'active-population-economic-sector-nace09')
+        self.assertTrue(len(subsections) == 2)
+        self.assertTrue(metadata.Subsection.get(7) in subsections)
+        
+    def test_get_possible_time_series(self):
+        time_series_list = metadata.TimeSeries.get_possible_time_series(
+                           'active-population-economic-sector-nace09')
+        self.assertTrue(len(time_series_list) == 2)
+        self.assertTrue(metadata.TimeSeries.get(5642) in time_series_list)
                         
     def test_get_time_series_list_by_category_and_section_and_subsection(self):
 
@@ -360,8 +393,6 @@ class TestIcaneMetadata(unittest.TestCase):
                                                      'economy',
                                                      'labour-market')
         self.assertTrue(len(data_set_list) >= 3)
-        for time_series in data_set_list:
-            print time_series.uriTag
         self.assertTrue(metadata.TimeSeries.get('social-protection')
                         in data_set_list)
 

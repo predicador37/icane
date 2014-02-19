@@ -60,7 +60,7 @@ class JSONDecoder(dict):
 
     def __getattr__(self, key):
         return self[key]
-
+    
     '''
 
      Retrieve an entity by its uriTag.
@@ -84,7 +84,7 @@ class JSONDecoder(dict):
     def find_all(cls):
         entities = []
         for entity in request(cls.plabel_):
-                entities.append(JSONDecoder(entity))
+                entities.append(cls(entity))
         return entities
 
 
@@ -97,7 +97,43 @@ class Category(JSONDecoder):
 
         super(self.__class__, self).__init__(dict_)
 
+class Class(JSONDecoder):
 
+    label_ = 'class'
+    plabel_ = 'classes'
+    
+    def __init__(self, dict_):
+
+        super(self.__class__, self).__init__(dict_)
+        
+    '''
+
+     Retrieve an entity by its uriTag.
+     @param uriTag the uriTag of the entity
+     @return
+
+    '''
+
+    @classmethod
+    def get(cls, class_name, lang):
+        return cls(request(cls.label_ +
+                           '/' + str(class_name) +
+                           '/' + 'description' + '/' + lang))
+   
+    '''
+
+      Retrieves all available entities
+      @return a list of entities
+
+    '''
+
+    @classmethod
+    def find_all(cls,lang):
+        entities = []
+        for entity in request(cls.plabel_ + '/' + 'description' + '/' + lang):
+                entities.append(cls(entity))
+        return entities
+                           
 class DataProvider(JSONDecoder):
 
     label_ = 'data-provider'
@@ -227,8 +263,65 @@ class TimeSeries(JSONDecoder):
 
         super(self.__class__, self).__init__(dict_)
 
+    '''
+
+    Retrieve an entity by its uriTag.
+    @param uriTag the uriTag of the entity
+    @return
+
+    '''
+
     @classmethod
-    def find_all_dataset_nodes(cls,
+    def get_parent(cls, uriTag):
+        return cls(request(cls.label_ + '/' + str(uriTag) + '/' + 'parent'))
+        
+    @classmethod
+    def get_parents(cls, uriTag):
+        parents = []
+        parents_array = request(cls.label_ +
+                            '/' + str(uriTag) +
+                            '/' + 'parents')
+        for ancestor in parents_array:
+            parents.append(JSONDecoder(ancestor))
+        return parents
+    
+    '''
+
+    Retrieve possible subsections associated to TimeSeries uriTag.
+    @param uriTag the uriTag of the TimeSeries entity
+    @return List of Subsection entities
+
+    '''
+    
+    @classmethod
+    def get_possible_subsections(cls, uriTag):
+        subsections = []
+        subsections_array = request(cls.label_ +
+                                    '/' + str(uriTag) +
+                                    '/' + 'subsections')
+        for subsection in subsections_array:
+            subsections.append(Subsection(subsection))
+        return subsections
+    
+    '''
+
+    Retrieve possible time-series associated to TimeSeries uriTag.
+    @param uriTag the uriTag of the TimeSeries entity
+    @return List of TimeSeries entities
+
+    '''
+    
+    @classmethod
+    def get_possible_time_series(cls, uriTag):
+        time_series_list = []
+        time_series_array = request(cls.plabel_ +
+                                    '/' + str(uriTag))
+        for time_series in time_series_array:
+            time_series_list.append(TimeSeries(time_series))
+        return time_series_list
+
+    @classmethod
+    def find_all_datasets(cls,
                           category_uri_tag,
                           section_uri_tag,
                           subsection_uri_tag):
@@ -240,38 +333,58 @@ class TimeSeries(JSONDecoder):
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
+        
+    @classmethod
+    def find_all_by_last_updated(cls,
+                          dataUpdated=None,
+                          metadataUpdated=None):
+        time_series_list = []
+        if (dataUpdated):
+            time_series_array = request(cls.plabel_ + '?dataUpdated=' +
+                                        dataUpdated)
+        elif (metadataUpdated):
+            time_series_array = request(cls.plabel_ + '?dataUpdated=' +
+                                        metadataUpdated)    
+        for time_series in time_series_array:
+            time_series_list.append(TimeSeries(time_series))
+        return time_series_list
 
     @classmethod
-    def find_all(cls, category_uri_tag=None,
-                      section_uri_tag=None,
-                      subsection_uri_tag=None,
-                      node_type_uri_tag=None):
+    def find_all(cls, category_uri_tag,
+                      section_uri_tag = None,
+                      subsection_uri_tag = None,
+                      data_set_uri_tag = None,
+                      node_type_uri_tag = None):
         
         time_series_list = []
-        if (category_uri_tag and
-            section_uri_tag and
-            subsection_uri_tag):
+        
+        if (section_uri_tag and
+            subsection_uri_tag and
+            data_set_uri_tag):
             time_series_array = request(category_uri_tag + '/' +
                                         section_uri_tag + '/' +
                                         subsection_uri_tag + '/' +
+                                        data_set_uri_tag + '/' +
                                         cls.plabel_)
-        elif (category_uri_tag and
-              section_uri_tag and
+        elif (section_uri_tag and
+              subsection_uri_tag):
+              time_series_array = request(category_uri_tag + '/' +
+                                          section_uri_tag + '/' +
+                                          subsection_uri_tag + '/' +
+                                          cls.plabel_)
+        elif (section_uri_tag and
               node_type_uri_tag):
-            time_series_array = request(category_uri_tag + '/' +
+              time_series_array = request(category_uri_tag + '/' +
                                         section_uri_tag + '/' +
                                         cls.plabel_ + '?nodeType=' +
                                         node_type_uri_tag)
-        elif (category_uri_tag and section_uri_tag):
+        elif (section_uri_tag):
             time_series_array = request(category_uri_tag + '/' +
                                         section_uri_tag + '/' +
                                         cls.plabel_)
-        elif (category_uri_tag):
-            time_series_array = request(category_uri_tag + '/' +
-                                         cls.plabel_)
         else:
-            pass
-        
+            time_series_array = request(category_uri_tag + '/' +
+                                         cls.plabel_)     
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
