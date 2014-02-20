@@ -5,6 +5,7 @@ import unittest
 import metadata
 import logging
 import urllib2
+import time
 
 
 logging.basicConfig(level=logging.INFO)
@@ -100,7 +101,15 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertTrue(len(data_sets) > 100)
         self.assertTrue(metadata.DataSet.get('regional-accounts-1995')
                         in data_sets)
-
+    
+    def test_get_last_updated_data(self):
+        self.assertTrue(metadata.Data.get_last_updated() == 
+                       time.strftime("%d/%m/%Y"))
+        
+    def test_get_last_updated_metadata(self):
+       self.assertTrue(metadata.Metadata.get_last_updated() == 
+                       time.strftime("%d/%m/%Y"))
+                       
     def test_link(self):
 
         self.assertRaises(ValueError, metadata.Link, 'not a json object')

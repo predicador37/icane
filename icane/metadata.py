@@ -4,6 +4,7 @@ import json
 import logging
 import httplib
 import inspect
+import datetime
 
 BASE_URL = 'http://www.icane.es/metadata/api/'
 logging.basicConfig(level=logging.INFO)
@@ -60,9 +61,14 @@ class JSONDecoder(dict):
 
     def __getattr__(self, key):
         return self[key]
-    
-    '''
 
+
+class BaseEntity(JSONDecoder):
+    
+    def __init__(self, dict_):
+
+        super(BaseEntity, self).__init__(dict_)
+    '''
      Retrieve an entity by its uriTag.
      @param uriTag the uriTag of the entity
      @return
@@ -87,24 +93,34 @@ class JSONDecoder(dict):
                 entities.append(cls(entity))
         return entities
 
-
-class Category(JSONDecoder):
-
-    label_ = 'category'
-    plabel_ = 'categories'
-
-    def __init__(self, dict_):
-
-        super(self.__class__, self).__init__(dict_)
-
-class Class(JSONDecoder):
-
-    label_ = 'class'
-    plabel_ = 'classes'
+class DataEntity(JSONDecoder):
     
     def __init__(self, dict_):
 
         super(self.__class__, self).__init__(dict_)
+     
+    @classmethod
+    def get_last_updated(cls):    
+        return datetime.datetime.fromtimestamp(
+               int(str((request( str(cls.label_)
+               + '/' + 'last-updated')))[0:-3])).strftime('%d/%m/%Y')
+                
+    @classmethod
+    def get_last_updated_millis(cls):
+        return int(str((request( str(cls.label_)
+                + '/' + 'last-updated'))))
+
+class Category(BaseEntity):
+        
+    label_ = 'category'
+    plabel_ = 'categories'
+
+
+class Class(BaseEntity):
+
+    label_ = 'class'
+    plabel_ = 'classes'
+    
         
     '''
 
@@ -133,135 +149,93 @@ class Class(JSONDecoder):
         for entity in request(cls.plabel_ + '/' + 'description' + '/' + lang):
                 entities.append(cls(entity))
         return entities
-                           
-class DataProvider(JSONDecoder):
+
+class Data(DataEntity):
+    
+     label_ = 'data'
+     
+
+class DataProvider(BaseEntity):
 
     label_ = 'data-provider'
     plabel_ = 'data-providers'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class DataSet(JSONDecoder):
+class DataSet(BaseEntity):
 
     label_ = 'data-set'
     plabel_ = 'data-sets'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Link(JSONDecoder):
+class Link(BaseEntity):
 
     label_ = 'link'
     plabel_ = 'links'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class LinkType(JSONDecoder):
+class LinkType(BaseEntity):
 
     label_ = 'link-type'
     plabel_ = 'link-types'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Measure(JSONDecoder):
+class Measure(BaseEntity):
 
     label_ = 'measure'
     plabel_ = 'measures'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
+class Metadata(DataEntity):
+    
+     label_ = 'metadata'
 
 
-class NodeType(JSONDecoder):
+class NodeType(BaseEntity):
 
     label_ = 'node-type'
     plabel_ = 'node-types'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Periodicity(JSONDecoder):
+class Periodicity(BaseEntity):
 
     label_ = 'periodicity'
     plabel_ = 'periodicities'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class ReferenceArea(JSONDecoder):
+class ReferenceArea(BaseEntity):
 
     label_ = 'reference-area'
     plabel_ = 'reference-areas'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Section(JSONDecoder):
+class Section(BaseEntity):
 
     label_ = 'section'
     plabel_ = 'sections'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Source(JSONDecoder):
+class Source(BaseEntity):
 
     label_ = 'source'
     plabel_ = 'sources'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class Subsection(JSONDecoder):
+class Subsection(BaseEntity):
 
     label_ = 'subsection'
     plabel_ = 'subsections'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class TimePeriod(JSONDecoder):
+class TimePeriod(BaseEntity):
 
     label_ = 'time-period'
     plabel_ = 'time-periods'
 
-    def __init__(self, dict_):
 
-        super(self.__class__, self).__init__(dict_)
-
-
-class TimeSeries(JSONDecoder):
+class TimeSeries(BaseEntity):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
-
-    def __init__(self, dict_):
-
-        super(self.__class__, self).__init__(dict_)
 
     '''
 
@@ -282,7 +256,7 @@ class TimeSeries(JSONDecoder):
                             '/' + str(uriTag) +
                             '/' + 'parents')
         for ancestor in parents_array:
-            parents.append(JSONDecoder(ancestor))
+            parents.append(BaseEntity(ancestor))
         return parents
     
     '''
@@ -390,11 +364,7 @@ class TimeSeries(JSONDecoder):
         return time_series_list
 
 
-class UnitOfMeasure(JSONDecoder):
+class UnitOfMeasure(BaseEntity):
 
     label_ = 'unit-of-measure'
     plabel_ = 'units-of-measure'
-
-    def __init__(self, dict_):
-
-        super(self.__class__, self).__init__(dict_)
