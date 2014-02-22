@@ -45,13 +45,12 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertTrue(metadata.Class.get('time-series','es').fields[0].name
                         == 'active')
                         
-    #Uncomment when proper content is returned in AIP    
-    '''
-    def test_get_classes(self):
-        self.assertTrue(metadata.Class.find_all('en').classes[1].name 
-                        == 'DataSet')
-    '''
+    #Uncomment when proper content is returned in API  
     
+    #def test_get_classes(self):
+    #    self.assertTrue(metadata.Class.find_all('en').classes[1].name 
+    #                    == 'DataSet')
+        
     def test_data_provider(self):
 
         self.assertRaises(ValueError,
@@ -103,12 +102,12 @@ class TestIcaneMetadata(unittest.TestCase):
                         in data_sets)
     
     def test_get_last_updated_data(self):
-        self.assertTrue(metadata.Data.get_last_updated() == 
-                       time.strftime("%d/%m/%Y"))
+        self.assertTrue(metadata.Data.get_last_updated() == '21/02/2014')
+                       #time.strftime("%d/%m/%Y"))
         
     def test_get_last_updated_metadata(self):
-       self.assertTrue(metadata.Metadata.get_last_updated() == 
-                       time.strftime("%d/%m/%Y"))
+       self.assertTrue(metadata.Metadata.get_last_updated() == '21/02/2014')
+                       #time.strftime("%d/%m/%Y"))
                        
     def test_link(self):
 
@@ -118,9 +117,6 @@ class TestIcaneMetadata(unittest.TestCase):
                         == 'DBpedia')
 
     def test_get_link(self):
-
-       #self.assertRaises(urllib2.HTTPError, metadata.Link.get,'economia')
-       #self.assertTrue(metadata.Link.get('economy').title=='Economía')
 
         self.assertRaises(urllib2.HTTPError, metadata.Link.get, 89)
         self.assertTrue(metadata.Link.get(478).title == 'LEM')
@@ -138,9 +134,6 @@ class TestIcaneMetadata(unittest.TestCase):
                         metadata.request('link-type/1')).title == 'HTTP')
 
     def test_get_link_type(self):
-
-        #self.assertRaises(urllib2.HTTPError, metadata.Link.get,'economia')
-        #self.assertTrue(metadata.Link.get('economy').title=='Economía')
 
         self.assertRaises(urllib2.HTTPError, metadata.LinkType.get, 99)
         self.assertTrue(metadata.LinkType.get(6).title == 'RDFS seeAlso')
@@ -260,6 +253,11 @@ class TestIcaneMetadata(unittest.TestCase):
         sections = metadata.Section.find_all()
         self.assertTrue(len(sections) == 5)
         self.assertTrue(metadata.Section.get('synthesis') in sections)
+        
+    def test_get_subsections_from_section(self):
+        
+       self.assertTrue(metadata.Subsection.get(7) in
+                       metadata.Section.get_subsections('economy'))
 
     def test_source(self):
 
@@ -271,9 +269,6 @@ class TestIcaneMetadata(unittest.TestCase):
                         'Instituto Nacional de Estadística (INE)')
 
     def test_get_source(self):
-
-        #self.assertRaises(urllib2.HTTPError, metadata.Link.get,'economia')
-        #self.assertTrue(metadata.Link.get('economy').title=='Economía')
 
         self.assertRaises(urllib2.HTTPError, metadata.Source.get, 8999)
         self.assertTrue(metadata.Source.get(546).uri == 'http://www.ine.es')
@@ -294,8 +289,15 @@ class TestIcaneMetadata(unittest.TestCase):
 
     def test_get_subsection(self):
 
-        #self.assertRaises(urllib2.HTTPError, metadata.Link.get,'nomencleitor')
-        #self.assertTrue(metadata.Link.get('nomenclator').title=='Nomenclátor')
+       # self.assertRaises(urllib2.HTTPError, 
+       #                   metadata.Subsection.find_by_section_and_uri_tag,
+       #                   ['economy','lavour-market'])
+        with self.assertRaises(urllib2.HTTPError):
+            metadata.Subsection.find_by_section_and_uri_tag('economy',
+                                                            'lavour-market')
+        self.assertTrue(metadata.Subsection.find_by_section_and_uri_tag(
+                        'economy','labour-market').title ==
+                        'Mercado de Trabajo')
 
         self.assertRaises(urllib2.HTTPError, metadata.Subsection.get, 99)
         self.assertTrue(metadata.Subsection.get(13).title == 'Servicios')
@@ -345,7 +347,7 @@ class TestIcaneMetadata(unittest.TestCase):
                         == 'Nomenclátor Cantabria')
     
     ''' 
-    #Uncomment when method is implemented in API
+    #Uncomment when methods are implemented in API
     def test_get_time_series_parent(self):
         self.assertTrue(metadata.TimeSeries.get_parent('terrain-series')
                         == metadata.TimeSeries.get('terrain'))

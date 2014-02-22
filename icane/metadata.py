@@ -213,6 +213,15 @@ class Section(BaseEntity):
     label_ = 'section'
     plabel_ = 'sections'
 
+    @classmethod
+    def get_subsections(cls, uriTag):
+        subsections = []
+        subsection_array = request(cls.label_ +
+                            '/' + str(uriTag) +
+                            '/' + 'subsections')
+        for subsection in subsection_array:
+            subsections.append(Subsection(subsection))
+        return subsections 
 
 class Source(BaseEntity):
 
@@ -225,6 +234,12 @@ class Subsection(BaseEntity):
     label_ = 'subsection'
     plabel_ = 'subsections'
 
+    #TODO: move into section methods?
+    @classmethod
+    def find_by_section_and_uri_tag(cls,section_uri_tag, subsection_uri_tag):
+        return cls(request('section' +
+                     '/'+ section_uri_tag +
+                     '/' + subsection_uri_tag))
 
 class TimePeriod(BaseEntity):
 
@@ -256,7 +271,7 @@ class TimeSeries(BaseEntity):
                             '/' + str(uriTag) +
                             '/' + 'parents')
         for ancestor in parents_array:
-            parents.append(BaseEntity(ancestor))
+            parents.append(TimeSeries(ancestor))
         return parents
     
     '''
