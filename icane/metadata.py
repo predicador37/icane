@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 def request(path):
             '''Utility function that calls urllib2 with BASE_URL
             + path and accepting json format'''
-            request = urllib2.Request(BASE_URL + path,
+            if (path.startswith("http://")):
+                request = urllib2.Request(path,
+                                      headers={"Accept": "application/json"})
+            else:
+                request = urllib2.Request(BASE_URL + path,
                                       headers={"Accept": "application/json"})
             f = None
             try:
@@ -42,14 +46,14 @@ def request(path):
                 return response
 
 
-class JSONDecoder(dict):
+class RawObject(dict):
     '''Utility function that decodes JSON into a python object'''
 
     label_ = None
     plabel_ = None
 
     def __init__(self, dict_):
-        super(JSONDecoder, self).__init__(dict_)
+        super(RawObject, self).__init__(dict_)
         for key in self:
             item = self[key]
             if isinstance(item, list):
@@ -63,7 +67,7 @@ class JSONDecoder(dict):
         return self[key]
 
 
-class BaseEntity(JSONDecoder):
+class BaseEntity(RawObject):
     
     def __init__(self, dict_):
 
@@ -93,7 +97,7 @@ class BaseEntity(JSONDecoder):
                 entities.append(cls(entity))
         return entities
 
-class DataEntity(JSONDecoder):
+class DataEntity(RawObject):
     
     def __init__(self, dict_):
 
@@ -251,6 +255,9 @@ class TimeSeries(BaseEntity):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
+    
+    def get_data(self):
+        return RawObject(request(self.apiUris[4].uri)).data
 
     '''
 

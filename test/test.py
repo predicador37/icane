@@ -345,7 +345,13 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
-    
+                        
+    def test_get_data(self):
+        test_ts = metadata.TimeSeries.get('quarterly-accounting-' +
+                  'cantabria-base-2008-current-prices')
+        data = test_ts.get_data()
+        self.assertTrue(len(data.rows) > 20)
+        
     ''' 
     #Uncomment when methods are implemented in API
     def test_get_time_series_parent(self):
