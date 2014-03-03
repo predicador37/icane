@@ -5,6 +5,7 @@ import logging
 import httplib
 import inspect
 import datetime
+import pandas as pd
 
 BASE_URL = 'http://www.icane.es/metadata/api/'
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +46,31 @@ def request(path):
                 f.close()
                 return response
 
+def flatten(data, record=None):
+    if data.get('data'):#first level
+        record = []
+        row = []
+        for j in sorted(list(flatten(data['data'], record))):
+            yield j
+    else: #other levels
+        for idx, k in enumerate(sorted(list(data))):
+            if isinstance(data[k],dict):      
+                record.append(k)
+                try:
+                
+                    for i in sorted(list(flatten(data[k], record))):
+                        if len(record) == 1:
+                            record.pop()
+                        yield i
+                except:
+                    pass
+            else: #last level
+               row = list(record)
+               row.append(k)
+               row.append(data[k])
+               yield row
+        if record:
+            record.pop()
 
 class RawObject(dict):
     '''Utility function that decodes JSON into a python object'''
@@ -65,6 +91,9 @@ class RawObject(dict):
 
     def __getattr__(self, key):
         return self[key]
+        
+    def to_json(self):
+        return json.dumps(self)
 
 
 class BaseEntity(RawObject):
@@ -256,8 +285,20 @@ class TimeSeries(BaseEntity):
     label_ = 'time-series'
     plabel_ = 'time-series-list'
     
-    def get_data(self):
-        return RawObject(request(self.apiUris[4].uri)).data
+    def get_dataframe(self):
+        resource = request(self.apiUris[3].uri) #third element is icane json
+        df = pd.DataFrame(list(flatten(resource)))
+        headers = list(resource['headers'])
+        headers.append(unicode('Valor'))
+        df.columns = headers
+        if (self.category.id == 3):
+            ts = df.set_index([unicode(headers[0])]) #TODO: check indexes pos
+        else:
+            ts = df.set_index([unicode(headers[len(headers)-2])])
+        return ts
+
+    #def get_data(self):
+    #    return request(self.apiUris[3].uri)
 
     '''
 

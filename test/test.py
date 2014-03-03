@@ -102,12 +102,12 @@ class TestIcaneMetadata(unittest.TestCase):
                         in data_sets)
     
     def test_get_last_updated_data(self):
-        self.assertTrue(metadata.Data.get_last_updated() == '21/02/2014')
-                       #time.strftime("%d/%m/%Y"))
+        self.assertTrue(metadata.Data.get_last_updated() ==
+                        time.strftime("%d/%m/%Y"))
         
     def test_get_last_updated_metadata(self):
-       self.assertTrue(metadata.Metadata.get_last_updated() == '21/02/2014')
-                       #time.strftime("%d/%m/%Y"))
+       self.assertTrue(metadata.Metadata.get_last_updated() ==
+                        time.strftime("%d/%m/%Y"))
                        
     def test_link(self):
 
@@ -346,11 +346,11 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
                         
-    def test_get_data(self):
-        test_ts = metadata.TimeSeries.get('quarterly-accounting-' +
+    def test_get_dataframe(self):
+        ts = metadata.TimeSeries.get('quarterly-accounting-' +
                   'cantabria-base-2008-current-prices')
-        data = test_ts.get_data()
-        self.assertTrue(len(data.rows) > 20)
+        df = ts.get_dataframe()
+        self.assertTrue(len(df) >= 2349)
         
     ''' 
     #Uncomment when methods are implemented in API
