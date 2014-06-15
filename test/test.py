@@ -6,6 +6,7 @@ import metadata
 import logging
 import urllib2
 import time
+import datetime
 
 
 logging.basicConfig(level=logging.INFO)
@@ -44,13 +45,21 @@ class TestIcaneMetadata(unittest.TestCase):
     def test_get_class(self):
         self.assertTrue(metadata.Class.get('time-series','es').fields[0].name
                         == 'active')
+
+    def test_get_classes(self):
+        self.assertTrue(metadata.Class.find_all('en')[1].name
+                        == 'DataSet')
                         
-    #Uncomment when proper content is returned in API  
-    
-    #def test_get_classes(self):
-    #    self.assertTrue(metadata.Class.find_all('en').classes[1].name 
-    #                    == 'DataSet')
-        
+    def test_data_get_last_updated(self):
+        self.assertTrue(datetime.datetime.strptime(
+                        metadata.Data.get_last_updated(), '%d/%m/%Y'))
+
+    def test_data_get_last_updated_millis(self):
+          self.assertTrue(datetime.datetime.strptime(
+                          datetime.datetime.fromtimestamp(
+                          int(str(metadata.Data.get_last_updated_millis()
+                          )[0:-3])).strftime('%d/%m/%Y'), '%d/%m/%Y'))
+
     def test_data_provider(self):
 
         self.assertRaises(ValueError,
@@ -62,10 +71,9 @@ class TestIcaneMetadata(unittest.TestCase):
 
     def test_get_data_provider(self):
 
-        #Uncomment when proper method is implemented in API
-        #self.assertRaises(urllib2.HTTPError,
-                           #metadata.DataProvider.get,'E0012120')
-        #self.assertTrue(metadata.DataProvider.get('E00121204').acronym=='INE')
+        self.assertRaises(urllib2.HTTPError,
+                          metadata.DataProvider.get,'E0012120')
+        self.assertTrue(metadata.DataProvider.get('E00121204').acronym=='INE')
 
         self.assertRaises(urllib2.HTTPError, metadata.DataProvider.get, 999)
         self.assertTrue(metadata.DataProvider.get(3).title
@@ -100,14 +108,6 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertTrue(len(data_sets) > 100)
         self.assertTrue(metadata.DataSet.get('regional-accounts-1995')
                         in data_sets)
-    
-    def test_get_last_updated_data(self):
-        self.assertTrue(metadata.Data.get_last_updated() ==
-                        time.strftime("%d/%m/%Y"))
-        
-    def test_get_last_updated_metadata(self):
-       self.assertTrue(metadata.Metadata.get_last_updated() ==
-                        time.strftime("%d/%m/%Y"))
                        
     def test_link(self):
 
@@ -163,6 +163,10 @@ class TestIcaneMetadata(unittest.TestCase):
         measures = metadata.Measure.find_all()
         self.assertTrue(len(measures) > 3000)
         self.assertTrue(metadata.Measure.get('1503') in measures)
+        
+    def test_metadata_get_last_updated(self):
+         self.assertTrue(datetime.datetime.strptime(
+                        metadata.Metadata.get_last_updated(), '%d/%m/%Y'))
 
     def test_node_type(self):
 
@@ -345,6 +349,10 @@ class TestIcaneMetadata(unittest.TestCase):
         self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
+        
+        self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 32)
+        self.assertTrue(metadata.TimeSeries.get(32, inactive='true').uriTag
+                        == 'childbirths')
                         
     def test_get_dataframe(self):
         ts = metadata.TimeSeries.get('quarterly-accounting-' +
@@ -352,7 +360,7 @@ class TestIcaneMetadata(unittest.TestCase):
         df = ts.get_dataframe()
         self.assertTrue(len(df) >= 2349)
         
-    ''' 
+    
     #Uncomment when methods are implemented in API
     def test_get_time_series_parent(self):
         self.assertTrue(metadata.TimeSeries.get_parent('terrain-series')
@@ -361,7 +369,7 @@ class TestIcaneMetadata(unittest.TestCase):
     def test_get_time_series_parents(self):
         self.assertTrue(metadata.TimeSeries.get('terrain')
                         in metadata.TimeSeries.get_parents('terrain-series'))
-    '''
+    
     def test_get_time_series_list_by_category(self):
 
         time_series_list = metadata.TimeSeries.find_all('historical-data')

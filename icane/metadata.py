@@ -108,6 +108,16 @@ def flatten(data, record=None):
         if record:
             record.pop()
 
+def add_query_string_params(nodeType = None, inactive = None):
+        if nodeType is None and inactive is None:
+            return ''
+        elif nodeType is not None and inactive is None:
+            return '?nodeType=' + str(nodeType)
+        elif nodeType is None and inactive is not None:
+            return '?inactive=' + str(inactive)
+        else:
+            return '?nodeType=' + str(nodeType) + '?inactive=' + str(inactive)
+
 class RawObject(dict):
 
     """Class to convert deserialized JSON into a Python object
@@ -227,7 +237,8 @@ class Class(BaseEntity):
     @classmethod
     def find_all(cls,lang):
         entities = []
-        for entity in request(cls.plabel_ + '/' + 'description' + '/' + lang):
+        response = request(cls.plabel_ + '/' + 'description' + '/' + lang)
+        for entity in response[cls.plabel_]:
                 entities.append(cls(entity))
         return entities
 
@@ -332,7 +343,12 @@ class TimeSeries(BaseEntity):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
-    
+
+    @classmethod
+    def get(cls, uriTag, inactive=False):
+        return cls(request(cls.label_ + '/' + str(uriTag) + 
+                    add_query_string_params(inactive = inactive)))
+
     def get_dataframe(self):
         resource = request(self.apiUris[3].uri) #third element is icane json
         df = pd.DataFrame(list(flatten(resource)))
