@@ -109,14 +109,22 @@ def flatten(data, record=None):
             record.pop()
 
 def add_query_string_params(nodeType = None, inactive = None):
-        if nodeType is None and inactive is None:
-            return ''
-        elif nodeType is not None and inactive is None:
-            return '?nodeType=' + str(nodeType)
-        elif nodeType is None and inactive is not None:
-            return '?inactive=' + str(inactive)
-        else:
-            return '?nodeType=' + str(nodeType) + '?inactive=' + str(inactive)
+        arguments = locals()
+        query_string =''
+        for argument, value in arguments.iteritems():
+            if value is not None:           
+                query_string = query_string + '?' + str(argument) + '=' +\
+                               str(value)     
+        return query_string
+
+def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
+                    data_set_uri_tag = ''):
+        arguments = locals().values()
+        path=''
+        for argument in arguments:
+            if argument is not None:
+                path = path + '/' + str(argument)
+        return path
 
 class RawObject(dict):
 
@@ -345,7 +353,7 @@ class TimeSeries(BaseEntity):
     plabel_ = 'time-series-list'
 
     @classmethod
-    def get(cls, uriTag, inactive=False):
+    def get(cls, uriTag, inactive=None):
         return cls(request(cls.label_ + '/' + str(uriTag) + 
                     add_query_string_params(inactive = inactive)))
 
@@ -455,41 +463,18 @@ class TimeSeries(BaseEntity):
                       section_uri_tag = None,
                       subsection_uri_tag = None,
                       data_set_uri_tag = None,
-                      node_type_uri_tag = None):
+                      node_type_uri_tag = None,
+                      inactive = None):
         
         time_series_list = []
-        
-        if (section_uri_tag and
-            subsection_uri_tag and
-            data_set_uri_tag):
-            time_series_array = request(category_uri_tag + '/' +
-                                        section_uri_tag + '/' +
-                                        subsection_uri_tag + '/' +
-                                        data_set_uri_tag + '/' +
-                                        cls.plabel_)
-        elif (section_uri_tag and
-              subsection_uri_tag):
-              time_series_array = request(category_uri_tag + '/' +
-                                          section_uri_tag + '/' +
-                                          subsection_uri_tag + '/' +
-                                          cls.plabel_)
-        elif (section_uri_tag and
-              node_type_uri_tag):
-              time_series_array = request(category_uri_tag + '/' +
-                                        section_uri_tag + '/' +
-                                        cls.plabel_ + '?nodeType=' +
-                                        node_type_uri_tag)
-        elif (section_uri_tag):
-            time_series_array = request(category_uri_tag + '/' +
-                                        section_uri_tag + '/' +
-                                        cls.plabel_)
-        else:
-            time_series_array = request(category_uri_tag + '/' +
-                                         cls.plabel_)     
+        http_request =  category_uri_tag + add_path_params(
+                        section_uri_tag, subsection_uri_tag, data_set_uri_tag)\
+                        + '/time-series-list' +\
+                        add_query_string_params(node_type_uri_tag, inactive)
+        time_series_array = request(http_request)
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
-
 
 class UnitOfMeasure(BaseEntity):
 

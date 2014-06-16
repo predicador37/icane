@@ -387,6 +387,7 @@ class TestIcaneMetadata(unittest.TestCase):
                                                         'time-series')
         self.assertTrue(len(data_set_list) > 15)
         self.assertTrue(len(time_series_list) > 40)
+        
         self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
         self.assertTrue(metadata.TimeSeries.get('elections-municipal')
