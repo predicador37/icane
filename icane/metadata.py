@@ -118,12 +118,20 @@ def add_query_string_params(nodeType = None, inactive = None):
         return query_string
 
 def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
-                    data_set_uri_tag = ''):
-        arguments = locals().values()
+                    data_set_uri_tag = None):
+        # arguments order must be preserved, I can't find a better way of 
+        # doing this, since it is not an OrderedDict.
+        arguments = locals()
+        values = []
+        ordered_arg_names = ['section_uri_tag', 'subsection_uri_tag', 
+                     'data_set_uri_tag']
+       
+        for name in ordered_arg_names:
+            values.append(arguments[name])
         path=''
-        for argument in arguments:
-            if argument is not None:
-                path = path + '/' + str(argument)
+        for value in values:
+            if value is not None:
+                path = path + '/' + str(value)
         return path
 
 class RawObject(dict):
@@ -357,7 +365,7 @@ class TimeSeries(BaseEntity):
         return cls(request(cls.label_ + '/' + str(uriTag) + 
                     add_query_string_params(inactive = inactive)))
 
-    def get_dataframe(self):
+    def to_dataframe(self):
         resource = request(self.apiUris[3].uri) #third element is icane json
         df = pd.DataFrame(list(flatten(resource)))
         headers = list(resource['headers'])
