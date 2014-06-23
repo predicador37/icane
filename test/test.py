@@ -326,10 +326,13 @@ class TestSection(unittest.TestCase):
        self.assertTrue(metadata.Subsection.get(7) in
                        metadata.Section.get_subsections('economy'))
     
-    #TODO: find_subsection_by_section_and_uri_tag
-     # self.assertRaises(urllib2.HTTPError, 
-       #                   metadata.Subsection.find_by_section_and_uri_tag,
-       #                   ['economy','lavour-market'])
+    def test_get_subsection_by_section_and_uri_tag(self):
+        with self.assertRaises(urllib2.HTTPError):
+            metadata.Section.get_subsection_by_section_and_uri_tag('economy',
+                                                            'lavour-market')
+        self.assertTrue(metadata.Section.get_subsection_by_section_and_uri_tag(
+                        'economy','labour-market').title ==
+                        'Mercado de Trabajo')
 
 class TestSource(unittest.TestCase):
 
@@ -370,13 +373,6 @@ class TestSubsection(unittest.TestCase):
                         == 'Cifras de población')
 
     def test_get(self):
-
-        with self.assertRaises(urllib2.HTTPError):
-            metadata.Subsection.find_by_section_and_uri_tag('economy',
-                                                            'lavour-market')
-        self.assertTrue(metadata.Subsection.find_by_section_and_uri_tag(
-                        'economy','labour-market').title ==
-                        'Mercado de Trabajo')
 
         self.assertRaises(urllib2.HTTPError, metadata.Subsection.get, 99)
         self.assertTrue(metadata.Subsection.get(13).title == 'Servicios')
