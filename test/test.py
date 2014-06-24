@@ -476,10 +476,9 @@ class TestTimeSeries(unittest.TestCase):
                                    .find_all('municipal-data',
                                              'territory-environment',
                                              node_type_uri_tag =
-                                            'time-series')
+                                             'time-series')
         self.assertTrue(len(data_set_list) > 15)
         self.assertTrue(len(time_series_list) > 40)
-        
         self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
         self.assertTrue(metadata.TimeSeries.get('elections-municipal')
@@ -488,18 +487,31 @@ class TestTimeSeries(unittest.TestCase):
     def test_get_by_category_and_section_and_subsection(self):
         node_list = metadata.TimeSeries.find_all('regional-data',
                                                  'economy',
-                                                 'labour-market',)        
+                                                 'labour-market')
+        node_list_all = metadata.TimeSeries.find_all('regional-data',
+                                                 'economy',
+                                                 'labour-market',
+                                                 inactive = True)
         time_series_list = metadata.TimeSeries.find_all('regional-data',
                                                  'economy',
                                                  'labour-market',
                                                  node_type_uri_tag=
                                                  'time-series')
+        time_series_list_all = metadata.TimeSeries.find_all('regional-data',
+                                                 'economy',
+                                                 'labour-market',
+                                                 node_type_uri_tag=
+                                                 'time-series',
+                                                 inactive=True)
         data_set_list = metadata.TimeSeries.find_all('regional-data',
                                                      'economy',
                                                      'labour-market',
                                                      node_type_uri_tag =
                                                      'data-set')
+                                                     
+        self.assertTrue(len(time_series_list_all) >= len(time_series_list))
         self.assertTrue(len(node_list) >= 3)
+        self.assertTrue(len(node_list) == len(node_list_all))
         self.assertTrue(len(data_set_list) >= 20)
         self.assertTrue(len(time_series_list) >= 60)
         self.assertTrue(metadata.TimeSeries.get('unemployment-benefits')

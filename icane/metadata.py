@@ -111,10 +111,18 @@ def flatten(data, record=None):
 def add_query_string_params(nodeType = None, inactive = None):
         arguments = locals()
         query_string =''
-        for argument, value in arguments.iteritems():
-            if value is not None:           
-                query_string = query_string + '?' + str(argument) + '=' +\
-                               str(value)     
+        operator = '?'
+        for i, (argument, value) in enumerate(arguments.iteritems()):
+            if (i == 0) and value is not None:
+                query_string = query_string + operator + str(argument) + '=' +\
+                                   str(value)
+                operator = '&'
+            elif (i==0) and value is None:
+                operator = '?'
+            elif (value is not None):
+                query_string = query_string + operator + str(argument) + '=' +\
+                                   str(value)
+                operator = '?'
         return query_string
 
 def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
