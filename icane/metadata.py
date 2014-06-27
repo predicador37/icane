@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""pyicane-metadata is a Python wrapper of the Statistical Office of \
+Cantabria's (ICANE) metadata restful API."""
 import urllib2
 import json
 import logging
@@ -38,20 +40,20 @@ def request(path):
    else:
        request = urllib2.Request(BASE_URL + path,
                              headers={"Accept": "application/json"})
-   f = None
+   requested_url = None
    try:
-       f = urllib2.urlopen(request)
-   except urllib2.HTTPError, e:
+       requested_url = urllib2.urlopen(request)
+   except urllib2.HTTPError, exception:
        logger.error((inspect.stack()[0][3]) +
-                    ': HTTPError = ' + str(e.code) +
-                    ' ' + str(e.reason) +
-                    ' ' + str(e.geturl()))
+                    ': HTTPError = ' + str(exception.code) +
+                    ' ' + str(exception.reason) +
+                    ' ' + str(exception.geturl()))
        raise
-   except urllib2.URLError, e:
-       logger.error('URLError = ' + str(e.reason) +
-                    ' ' + str(e.geturl()))
+   except urllib2.URLError, exception:
+       logger.error('URLError = ' + str(exception.reason) +
+                    ' ' + str(exception.geturl()))
        raise
-   except httplib.HTTPException, e:
+   except httplib.HTTPException, exception:
        logger.error('HTTPException')
        raise
    except Exception:
@@ -59,8 +61,8 @@ def request(path):
        logger.error('Generic exception: ' + traceback.format_exc())
        raise
    else:
-       response = json.loads(f.read())
-       f.close()
+       response = json.loads(requested_url.read())
+       requested_url.close()
        return response
 
 def flatten(data, record=None):
@@ -84,7 +86,7 @@ def flatten(data, record=None):
             yield j
     else: #other levels
         for idx, k in enumerate(sorted(list(data))):
-            if isinstance(data[k],dict):      
+            if isinstance(data[k], dict):      
                 record.append(k)
                 try:
                 
@@ -120,7 +122,7 @@ def add_query_string_params(nodeType = None, inactive = None):
     """
 
     arguments = locals()
-    query_string =''
+    query_string = ''
     operator = '?'
     for i, (argument, value) in enumerate(arguments.iteritems()):
         if (i == 0) and value is not None:
@@ -172,7 +174,7 @@ def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
    
     for name in ordered_arg_names:
         values.append(arguments[name])
-    path=''
+    path = ''
     for value in values:
         if value is not None:
             path = path + '/' + str(value)
@@ -202,13 +204,13 @@ class RawObject(dict):
         
         super(RawObject, self).__init__(dict_)
         for key in self:
-            item = self[key]
-            if isinstance(item, list):
-                for id, it in enumerate(item):
-                    if isinstance(it, dict):
-                        item[id] = self.__class__(it)
-            elif isinstance(item, dict):
-                self[key] = self.__class__(item)
+            items = self[key]
+            if isinstance(items, list):
+                for idx, item in enumerate(items):
+                    if isinstance(item, dict):
+                        items[id] = self.__class__(item)
+            elif isinstance(items, dict):
+                self[key] = self.__class__(items)
 
     def __getattr__(self, key):
         """Get dictionary key as attribute. Overriden method.
@@ -236,18 +238,18 @@ class BaseEntity(RawObject):
    
 
     @classmethod
-    def get(cls, uriTag):
-        """Retrieve an entity by its uriTag.
+    def get(cls, uri_tag):
+        """Retrieve an entity by its uri_tag.
         Args:
-         uriTag (string): the uriTag (ie. label) of the entity.
+         uri_tag (string): the uri_tag (ie. label) of the entity.
 
         Returns:
-         Python object from the entity class represented by the uriTag
+         Python object from the entity class represented by the uri_tag
          parameter.
 
         """
 
-        return cls(request(cls.label_ + '/' + str(uriTag)))
+        return cls(request(cls.label_ + '/' + str(uri_tag)))
 
     @classmethod
     def find_all(cls):
@@ -256,8 +258,8 @@ class BaseEntity(RawObject):
          None
 
         Returns:
-         List of Python objects from the entity class represented by the uriTag
-         parameter.
+         List of Python objects from the entity class represented by the \
+         uri_tag parameter.
 
         """
 
@@ -435,10 +437,10 @@ class Section(BaseEntity):
     plabel_ = 'sections'
 
     @classmethod
-    def get_subsections(cls, uriTag):
+    def get_subsections(cls, uri_tag):
         subsections = []
         subsection_array = request(cls.label_ +
-                            '/' + str(uriTag) +
+                            '/' + str(uri_tag) +
                             '/' + 'subsections')
         for subsection in subsection_array:
             subsections.append(Subsection(subsection))
@@ -489,8 +491,8 @@ class TimeSeries(BaseEntity):
     plabel_ = 'time-series-list'
 
     @classmethod
-    def get(cls, uriTag, inactive=None):
-        return cls(request(cls.label_ + '/' + str(uriTag) + 
+    def get(cls, uri_tag, inactive=None):
+        return cls(request(cls.label_ + '/' + str(uri_tag) + 
                     add_query_string_params(inactive = inactive)))
 
     def to_dataframe(self):
@@ -500,35 +502,37 @@ class TimeSeries(BaseEntity):
             Python Pandas Dataframe.
         """
         resource = request(self.apiUris[3].uri) #third element is icane json
-        df = pd.DataFrame(list(flatten(resource)))
+        data = pd.DataFrame(list(flatten(resource)))
         headers = list(resource['headers'])
         headers.append(unicode('Valor'))
-        df.columns = headers
+        data.columns = headers
         if (self.category.id == 3):
-            ts = df.set_index([unicode(headers[0])]) #TODO: check indexes pos
+            time_series = data.set_index([unicode(headers[0])]) 
+            #TODO: check indexes pos
         else:
-            ts = df.set_index([unicode(headers[len(headers)-2])])
-        return ts
+            time_series = data.set_index([unicode(headers[len(headers)-2])])
+        return time_series
 
     @classmethod
-    def get_parent(cls, uriTag):
+    def get_parent(cls, uri_tag):
         """Retrieve the parent node of the node or TimeSeries given by its \
-           uriTag.
+           uri_tag.
             Args:
-             uriTag (string): uriTag (ie, label) of the node or TimeSeries.
+             uri_tag (string): uri_tag (ie, label) of the node or TimeSeries.
 
             Returns:
              Python TimeSeries object representing the parent node of the \
              given one.
 
         """
-        return cls(request(cls.label_ + '/' + str(uriTag) + '/' + 'parent'))
+        return cls(request(cls.label_ + '/' + str(uri_tag) + '/' + 'parent'))
         
     @classmethod
-    def get_parents(cls, uriTag):
-        """Retrieve all ancestors of the node or TimeSeries given by its uriTag.
+    def get_parents(cls, uri_tag):
+        """Retrieve all ancestors of the node or TimeSeries given by its \
+           uri_tag.
             Args:
-             uriTag (string): uriTag (ie, label) of the node or TimeSeries.
+             uri_tag (string): uri_tag (ie, label) of the node or TimeSeries.
 
             Returns:
              Python list of TimeSeries objects representing the ancestors of \
@@ -537,18 +541,18 @@ class TimeSeries(BaseEntity):
         """
         parents = []
         parents_array = request(cls.label_ +
-                            '/' + str(uriTag) +
+                            '/' + str(uri_tag) +
                             '/' + 'parents')
         for ancestor in parents_array:
             parents.append(TimeSeries(ancestor))
         return parents
     
     @classmethod
-    def get_possible_subsections(cls, uriTag):
+    def get_possible_subsections(cls, uri_tag):
         """Retrieve all possible subsections associated to a node or \
-           TimeSeries uriTag.
+           TimeSeries uri_tag.
             Args:
-             uriTag (string): uriTag (ie, label) of the node or TimeSeries.
+             uri_tag (string): uri_tag (ie, label) of the node or TimeSeries.
 
             Returns:
              Python list of Subsection objects representing the subsections \
@@ -557,27 +561,27 @@ class TimeSeries(BaseEntity):
         """
         subsections = []
         subsections_array = request(cls.label_ +
-                                    '/' + str(uriTag) +
+                                    '/' + str(uri_tag) +
                                     '/' + 'subsections')
         for subsection in subsections_array:
             subsections.append(Subsection(subsection))
         return subsections
     
     @classmethod
-    def get_possible_time_series(cls, uriTag):
+    def get_possible_time_series(cls, uri_tag):
         """Retrieve all possible nodes or time series associated to a node or \
-           TimeSeries uriTag.
+           TimeSeries uri_tag.
             Args:
-             uriTag (string): uriTag (ie, label) of the node or TimeSeries.
+             uri_tag (string): uri_tag (ie, label) of the node or TimeSeries.
 
             Returns:
              Python list of TimeSeries objects representing the nodes or time \
-             series associated to a given uriTag.
+             series associated to a given uri_tag.
 
         """
         time_series_list = []
         time_series_array = request(cls.plabel_ +
-                                    '/' + str(uriTag))
+                                    '/' + str(uri_tag))
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
@@ -590,11 +594,14 @@ class TimeSeries(BaseEntity):
         """Retrieve all nodes of type dataset given its category, section \
             and subsection.
             Args:
-             curiTag (string): uriTag (ie, label) of the node or TimeSeries.
+             category_uri_tag (string): uri_tag (ie, label) of the category.
+             section_uri_tag (string): uri_tag (ie, label) of the section.
+             subsection_uri_tag (string): uri_tag (ie, label) of the subsection.
 
             Returns:
-             Python list of TimeSeries objects representing the nodes or time \
-             series associated to a given uriTag.
+             Python list of TimeSeries objects with nodeType='data-set' for \
+             a given category, section and subsection.
+             
 
         """
         time_series_list = []
@@ -608,15 +615,29 @@ class TimeSeries(BaseEntity):
         
     @classmethod
     def find_all_by_last_updated(cls,
-                          dataUpdated=None,
-                          metadataUpdated=None):
+                          data_updated=None,
+                          metadata_updated=None):
+        """Retrieve all time series for a given data or metadata update date.
+            
+            Args:
+             data_updated (string, optional): last data update date. Both \
+                                             arguments are mutually exclusive.
+             metadata_updated (string, optional): last metadata update date.
+                                                 Both arguments are mutually \
+                                                 exclusive.
+
+            Returns:
+             Python list of TimeSeries objects whose data or metadata have \
+             been updated in the specified dates. 
+
+        """
         time_series_list = []
-        if (dataUpdated):
-            time_series_array = request(cls.plabel_ + '?dataUpdated=' +
-                                        dataUpdated)
-        elif (metadataUpdated):
-            time_series_array = request(cls.plabel_ + '?dataUpdated=' +
-                                        metadataUpdated)    
+        if (data_updated):
+            time_series_array = request(cls.plabel_ + '?data_updated=' +
+                                        data_updated)
+        elif (metadata_updated):
+            time_series_array = request(cls.plabel_ + '?data_updated=' +
+                                        metadata_updated)    
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
@@ -628,7 +649,31 @@ class TimeSeries(BaseEntity):
                       data_set_uri_tag = None,
                       node_type_uri_tag = None,
                       inactive = None):
-        
+        """Retrieve all nodes of type dataset given its category, section \
+            and subsection.
+            Args:
+             category_uri_tag (string): uri_tag (ie, label) of the category.
+             section_uri_tag (string, optional): uri_tag (ie, label) of the \
+                 section. If present, it must follow a category uri-tag or an \
+                 exception will be thrown by the restful API.
+             subsection_uri_tag (string, optional): uri_tag (ie, label) of \
+                 the subsection. If present, it must follow a section uri-tag \
+                 or an exception will be thrown by the restful API.
+             data_set_uri_tag (string, optional): uri_tag (ie, label) of the \
+                 data-set. If present, it must follow a subsection uri-tag or \
+                 an exception will be thrown by the restful API.
+             nodeType(string, optional): specifies the node type to return. \
+                 Accepted values: 'time-series', 'data-set', 'folder','theme',\
+                 etc. See NodeType class for more info. Defaults to None.
+             inactive(boolean, optional): if True, inactive nodes are also \
+                 returned. Defaults to None.
+
+            Returns:
+             Python list of TimeSeries objects representing the nodes or time \
+             series associated to a given category, section, subsection or \
+             dataset uri_tag, filtered by nodeType and inactive status.
+
+        """
         time_series_list = []
         http_request =  category_uri_tag + add_path_params(
                         section_uri_tag, subsection_uri_tag, data_set_uri_tag)\
