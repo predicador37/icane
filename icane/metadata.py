@@ -11,59 +11,118 @@ import pandas as pd
 
 BASE_URL = 'http://www.icane.es/metadata/api/'
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def request(path):
-   """Send a request to a given URL accepting JSON format and returns a JSON 
-      object.
-      If no "http://" protocol is specified, BASE_URL is used in the request.
+    """Send a request to a given URL accepting JSON format and returns a JSON 
+       object.
+       If no "http://" protocol is specified, BASE_URL is used in the request.
 
-   Args:
-     path (str): The URI to be requested.
+    Args:
+      path (str): The URI to be requested.
 
-   Returns:
-     response: Deserialized JSON object.
+    Returns:
+      response: Deserialized JSON object.
 
-   Raises:
-     HTTPError: the HTTP error returned by the requested server.
-     URLError: the handlers of urllib2 this exception (or derived exceptions).
-     when they run into a problem.
-     HTTPException: generic http exception.
-     Exception: generic exception.
+    Raises:
+      HTTPError: the HTTP error returned by the requested server.
+      URLError: the handlers of urllib2 this exception (or derived exceptions).
+      when they run into a problem.
+      HTTPException: generic http exception.
+      Exception: generic exception.
 
-   """
+    """
 
-   if (path.startswith("http://")):
-       request = urllib2.Request(path,
+    if (path.startswith("http://")):
+        request_object = urllib2.Request(path,
                              headers={"Accept": "application/json"})
-   else:
-       request = urllib2.Request(BASE_URL + path,
+    else:
+        request_object = urllib2.Request(BASE_URL + path,
                              headers={"Accept": "application/json"})
-   requested_url = None
-   try:
-       requested_url = urllib2.urlopen(request)
-   except urllib2.HTTPError, exception:
-       logger.error((inspect.stack()[0][3]) +
-                    ': HTTPError = ' + str(exception.code) +
-                    ' ' + str(exception.reason) +
-                    ' ' + str(exception.geturl()))
-       raise
-   except urllib2.URLError, exception:
-       logger.error('URLError = ' + str(exception.reason) +
-                    ' ' + str(exception.geturl()))
-       raise
-   except httplib.HTTPException, exception:
-       logger.error('HTTPException')
-       raise
-   except Exception:
-       import traceback
-       logger.error('Generic exception: ' + traceback.format_exc())
-       raise
-   else:
-       response = json.loads(requested_url.read())
-       requested_url.close()
-       return response
+    requested_url = None
+    try:
+        requested_url = urllib2.urlopen(request_object)
+    except urllib2.HTTPError, exception:
+        LOGGER.error((inspect.stack()[0][3]) +
+                               ': HTTPError = ' + str(exception.code) +
+                               ' ' + str(exception.reason) +
+                               ' ' + str(exception.geturl()))
+        raise
+    except urllib2.URLError, exception:
+        LOGGER.error('URLError = ' + str(exception.reason) +
+                              ' ' + str(exception.geturl()))
+        raise
+    except httplib.HTTPException, exception:
+        LOGGER.error('HTTPException')
+        raise
+    except Exception:
+        import traceback
+        LOGGER.error('Generic exception: ' + traceback.format_exc())
+        raise
+    else:
+        response = json.loads(requested_url.read())
+        requested_url.close()
+        return response
+
+def plain_metadata_model(node):
+    if node.dataUpdate is None:
+        dataUpdate = '0000'
+    else:
+        dataUpdate = node.dataUpdate
+    if node.dataSet is None:
+        dataSetTitle = ''
+    else:
+        dataSetTitle = node.dataSet.title
+    if node.periodicity is None:
+        periodicityTitle = ''
+    else:
+        periodicityTitle = node.periodicity.title
+    if node.referenceArea is None:
+        referenceAreaTitle = ''
+    else:
+        referenceAreaTitle = node.referenceArea.title
+    if len(node.sources) == 0:
+        sourcesLabel = ''
+    else:
+        sourcesLabel = node.sources[0].label
+    
+    return [node.id, node.title, node.active, node.uri, 
+                   node.metadataUri, node.resourceUri, 
+                   node.documentation, node.methodology, 
+                   node.mapScope, node.referenceResources, 
+                   node.description, node.theme, node.language, 
+                   node.publisher, node.license, node.topics, 
+                   node.automatizedTopics, node.uriTag, node.uriTagEs,
+                   node.initialPeriodDescription, 
+                   node.finalPeriodDescription, 
+                   datetime.datetime.fromtimestamp(
+                   int(str(dataUpdate)[0:-3])).strftime('%d/%m/%Y'),
+                   datetime.datetime.fromtimestamp(
+                   int(str(node.dateCreated)[0:-3])).strftime('%d/%m/%Y'),
+                   datetime.datetime.fromtimestamp(
+                   int(str(node.lastUpdated)[0:-3])).strftime('%d/%m/%Y'),
+                   node.subsection.title,
+                   node.subsection.section.title,
+                   node.category.title, dataSetTitle,
+                   periodicityTitle, node.nodeType.title,
+                   referenceAreaTitle, sourcesLabel,
+                   str(', '.join([': '.join((x.title, x.unit)) for x in 
+                   node.measures])), 
+                   str([', '.join((x.uri,'')) for x in node.apiUris])]
+
+def flatten_metadata(data):
+
+    for node in data:
+        if node.nodeType.uriTag in ['time-series', \
+                                             'non-olap-native',
+                                          'document']: #leaf node
+            yield plain_metadata_model(node)
+
+        else:
+            yield plain_metadata_model(node)
+            for child in flatten_metadata(node.children):
+                yield child
 
 def flatten(data, record=None):
     """Flatten a nested dict generated from a deserialized JSON object.
@@ -94,23 +153,23 @@ def flatten(data, record=None):
                         if len(record) == 1:
                             record.pop()
                         yield i
-                except:
+                except Exception:
                     pass
             else: #last level
-               row = list(record)
-               row.append(k)
-               row.append(data[k])
-               yield row
+                row = list(record)
+                row.append(k)
+                row.append(data[k])
+                yield row
         if record:
             record.pop()
 
-def add_query_string_params(nodeType = None, inactive = None):
+def add_query_string_params(node_type = None, inactive = None):
     """Add query string params to a string representing a URI.
 
     Args:
-      nodeType(string, optional): specifies the node type to return. Accepted \ 
+      node_type(string, optional): specifies the node type to return. Accepted \ 
                                   values: 'time-series', 'data-set', \
-                                  'folder','theme', etc. See NodeType class \
+                                  'folder','theme', etc. See node_type class \
                                   for more info. Defaults to None.
       inactive(boolean, optional): if True, inactive nodes are also returned. \
                                    Defaults to None.
@@ -208,7 +267,7 @@ class RawObject(dict):
             if isinstance(items, list):
                 for idx, item in enumerate(items):
                     if isinstance(item, dict):
-                        items[id] = self.__class__(item)
+                        items[idx] = self.__class__(item)
             elif isinstance(items, dict):
                 self[key] = self.__class__(items)
 
@@ -222,12 +281,14 @@ class RawObject(dict):
           self[key](string): key associated value.
 
         """
+
         return self[key]
         
-        """ TODO: remove if unused      
-        def to_json(self):
+    def to_json(self):
+        """Return a JSON dump of the object."""
+
         return json.dumps(self)
-        """
+        
 
 class BaseEntity(RawObject):
     """ Base entity skeleton with common methods. """
@@ -265,7 +326,7 @@ class BaseEntity(RawObject):
 
         entities = []
         for entity in request(cls.plabel_):
-                entities.append(cls(entity))
+            entities.append(cls(entity))
         return entities
 
 class DataEntity(RawObject):
@@ -312,8 +373,12 @@ class Category(BaseEntity):
     plabel_ = 'categories'
 
 
-class Class(BaseEntity):
+class Class(RawObject):
     """ Class mapping icane.es 'Class' entity."""
+    
+    def __init__(self, dict_):
+
+        super(Class, self).__init__(dict_)
 
     label_ = 'class'
     plabel_ = 'classes'
@@ -335,7 +400,7 @@ class Class(BaseEntity):
                            '/' + 'description' + '/' + lang))
 
     @classmethod
-    def find_all(cls,lang):
+    def find_all(cls, lang):
         """Retrieve the description of all classes or entitiese.
             Args:
              lang (string): language; possible values: 'es', 'en'
@@ -348,7 +413,7 @@ class Class(BaseEntity):
         entities = []
         response = request(cls.plabel_ + '/' + 'description' + '/' + lang)
         for entity in response[cls.plabel_]:
-                entities.append(cls(entity))
+            entities.append(cls(entity))
         return entities
 
 class Data(DataEntity):
@@ -398,13 +463,13 @@ class Measure(BaseEntity):
 
 
 class Metadata(DataEntity):
-     """Class mapping icane.es 'Metadata' entity."""
+    """Class mapping icane.es 'Metadata' entity."""
 
-     label_ = 'metadata'
+    label_ = 'metadata'
 
 
 class NodeType(BaseEntity):
-    """Class mapping icane.es 'NodeType' entity. A NodeType is used to \
+    """Class mapping icane.es 'node_type' entity. A node_type is used to \
        distinguish among typologies of levels in a hierarchical \
        representation of metadata."""
 
@@ -438,6 +503,14 @@ class Section(BaseEntity):
 
     @classmethod
     def get_subsections(cls, uri_tag):
+        """Retrieve all subsections belonging to a given section.
+            Args:
+             uri_tag (string): Section uri tag (ie, label).
+
+            Returns:
+             Python list of objects of'Subsection' class.
+
+        """
         subsections = []
         subsection_array = request(cls.label_ +
                             '/' + str(uri_tag) +
@@ -447,8 +520,17 @@ class Section(BaseEntity):
         return subsections 
     
     @classmethod
-    def get_subsection_by_section_and_uri_tag(cls, section_uri_tag, 
-                                              subsection_uri_tag):
+    def get_subsection(cls, section_uri_tag, subsection_uri_tag):
+        """Retrieve a subsection instance for a given section.
+            Args:
+             section_uri_tag (string): Section uri tag (ie, label) of the \
+                                       Subsection parent.
+             subsection_uri_tag (string): The subsection uri tag to be \
+                                          retrieved.
+            Returns:
+             Python objects of 'Subsection' class.
+
+        """
         return cls(request('section' +
                      '/'+ section_uri_tag +
                      '/' + subsection_uri_tag))
@@ -479,13 +561,16 @@ class TimePeriod(BaseEntity):
     plabel_ = 'time-periods'
 
 
-class TimeSeries(BaseEntity):
+class TimeSeries(RawObject):
     """Class mapping icane.es 'TimeSeries' entity.  A TimeSeries \
        represents a set of ordered observations on a quantitative \
        characteristic of an individual or collective phenomenon taken at \
        different points of time. Lists of elements of this class are returned \
        adequately classified and nested in a structure with groups, themes \
        and statistics without semantic value."""
+    def __init__(self, dict_):
+
+        super(TimeSeries, self).__init__(dict_)
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
@@ -599,7 +684,7 @@ class TimeSeries(BaseEntity):
              subsection_uri_tag (string): uri_tag (ie, label) of the subsection.
 
             Returns:
-             Python list of TimeSeries objects with nodeType='data-set' for \
+             Python list of TimeSeries objects with node_type='data-set' for \
              a given category, section and subsection.
              
 
@@ -662,16 +747,16 @@ class TimeSeries(BaseEntity):
              data_set_uri_tag (string, optional): uri_tag (ie, label) of the \
                  data-set. If present, it must follow a subsection uri-tag or \
                  an exception will be thrown by the restful API.
-             nodeType(string, optional): specifies the node type to return. \
+             node_type(string, optional): specifies the node type to return. \
                  Accepted values: 'time-series', 'data-set', 'folder','theme',\
-                 etc. See NodeType class for more info. Defaults to None.
+                 etc. See node_type class for more info. Defaults to None.
              inactive(boolean, optional): if True, inactive nodes are also \
                  returned. Defaults to None.
 
             Returns:
              Python list of TimeSeries objects representing the nodes or time \
              series associated to a given category, section, subsection or \
-             dataset uri_tag, filtered by nodeType and inactive status.
+             dataset uri_tag, filtered by node_type and inactive status.
 
         """
         time_series_list = []
