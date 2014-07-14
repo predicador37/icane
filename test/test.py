@@ -22,7 +22,7 @@ class TestGenericMethods(unittest.TestCase):
                                                  'labour-market')
         for node in metadata.flatten_metadata(node_list):
             print node
-'''    
+    
 class TestCategory(unittest.TestCase):
 
     def setUp(self):
@@ -421,7 +421,7 @@ class TestTimeSeries(unittest.TestCase):
 
     def setUp(self):
         pass
-    
+
     def test_time_series(self):
 
         self.assertRaises(ValueError, metadata.TimeSeries,
@@ -488,7 +488,6 @@ class TestTimeSeries(unittest.TestCase):
                                              node_type_uri_tag =
                                              'time-series')
         self.assertTrue(len(data_set_list) > 15)
-        print len(time_series_list)
         self.assertTrue(len(time_series_list) > 40)
         self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
@@ -523,7 +522,6 @@ class TestTimeSeries(unittest.TestCase):
         self.assertTrue(len(time_series_list_all) >= len(time_series_list))
         self.assertTrue(len(node_list) >= 3)
         self.assertTrue(len(node_list) == len(node_list_all))
-        print len(data_set_list)
         self.assertTrue(len(data_set_list) >= 3)
         self.assertTrue(len(time_series_list) >= 60)
         self.assertTrue(metadata.TimeSeries.get('unemployment-benefits')
@@ -591,6 +589,6 @@ class TestUnifOfMeasure(unittest.TestCase):
         units_of_measure = metadata.UnitOfMeasure.find_all()
         self.assertTrue(len(units_of_measure) > 300)
         self.assertTrue(metadata.UnitOfMeasure.get('45') in units_of_measure)
-'''
+
 if __name__ == '__main__':
     unittest.main()
