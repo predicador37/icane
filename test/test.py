@@ -5,7 +5,6 @@ import unittest
 import metadata
 import logging
 import urllib2
-import time
 import datetime
 
 
@@ -14,15 +13,51 @@ logger = logging.getLogger(__name__)
 
 class TestGenericMethods(unittest.TestCase):
     def setUp(self):
+        self.NODE_DIGEST_FIELDS = 34
         pass
 
+    def test_request(self):
+        section_instance = metadata.Section(metadata.request(
+                                            'section/economy'))
+        self.assertTrue(section_instance.title == 'Economía')
+        self.assertRaises(urllib2.HTTPError,
+                          metadata.request, 'section/economic')
+      
+    def test_plain_metadata_model(self):
+        node_instance = metadata.TimeSeries.get('quarterly-accounting-'
+                                          'cantabria-base-2008-current-prices')
+        node_digest = metadata.node_digest_model(node_instance)
+        self.assertTrue(len(node_digest) == self.NODE_DIGEST_FIELDS)
+        self.assertTrue(node_digest[22] == '31/10/2012')
+               
     def test_flatten_metadata(self):
         node_list = metadata.TimeSeries.find_all('regional-data',
                                                  'economy',
                                                  'labour-market')
-        for node in metadata.flatten_metadata(node_list):
-            print node
-    
+        first_record_name = 'Estadísticas de empleo y paro'
+        second_record_uri_tag = 'active-population-survey-bases'
+        records = metadata.flatten_metadata(node_list)
+        self.assertTrue(first_record_name == next(records)[1])
+        self.assertTrue(second_record_uri_tag == next(records)[17])
+        
+    def test_add_query_string_params(self):
+        self.assertTrue(metadata.add_query_string_params('non-olap-native') == 
+                        '?nodeType=non-olap-native')
+       
+        self.assertTrue(metadata.add_query_string_params('non-olap-native',
+                                                         'True') == 
+                        '?nodeType=non-olap-native&inactive=True')
+    def test_add_path_params(self):
+        self.assertTrue(metadata.add_path_params('economy') == 
+                        '/economy')
+        self.assertTrue(metadata.add_path_params('economy', 'labour-market') == 
+                        '/economy/labour-market')
+       
+        self.assertTrue(metadata.add_path_params('economy', 'labour-market',
+                        'active-population-survey-bases') == 
+                        '/economy/labour-market/active-population-survey-'
+                        'bases') 
+  
 class TestCategory(unittest.TestCase):
 
     def setUp(self):
@@ -454,14 +489,14 @@ class TestTimeSeries(unittest.TestCase):
     def test_get_parent(self):
         self.assertTrue(metadata.TimeSeries.get_parent('terrain-series')
                         == metadata.TimeSeries.get('terrain'))
-        self.assertTrue(metadata.TimeSeries.get_parent(494)
-                        == metadata.TimeSeries.get(493))
+        self.assertTrue(metadata.TimeSeries.get_parent(4876)
+                        == metadata.TimeSeries.get(4106))
                         
     def test_get_parents(self):
         self.assertTrue(metadata.TimeSeries.get('terrain')
                         in metadata.TimeSeries.get_parents('terrain-series'))                        
-        self.assertTrue(metadata.TimeSeries.get(493)
-                        in metadata.TimeSeries.get_parents(494))
+        self.assertTrue(metadata.TimeSeries.get(4106)
+                        in metadata.TimeSeries.get_parents(4876))
     
     def test_get_possible_subsections(self):
         subsections = metadata.TimeSeries.get_possible_subsections(
@@ -487,7 +522,7 @@ class TestTimeSeries(unittest.TestCase):
                                              'territory-environment',
                                              node_type_uri_tag =
                                              'time-series')
-        self.assertTrue(len(data_set_list) > 15)
+        self.assertTrue(len(data_set_list) > 10)
         self.assertTrue(len(time_series_list) > 40)
         self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
