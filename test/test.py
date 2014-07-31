@@ -4,12 +4,14 @@ sys.path.append('../icane')
 import unittest
 import metadata
 import logging
-import urllib2
+import requests
 import datetime
-
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+requests_log = logging.getLogger("requests")
+requests_log.setLevel(logging.WARNING)
 
 class TestGenericMethods(unittest.TestCase):
     def setUp(self):
@@ -20,16 +22,16 @@ class TestGenericMethods(unittest.TestCase):
         section_instance = metadata.Section(metadata.request(
                                             'section/economy'))
         self.assertTrue(section_instance.title == 'Economía')
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.request, 'section/economic')
-      
+    
     def test_plain_metadata_model(self):
         node_instance = metadata.TimeSeries.get('quarterly-accounting-'
                                           'cantabria-base-2008-current-prices')
         node_digest = metadata.node_digest_model(node_instance)
         self.assertTrue(len(node_digest) == self.NODE_DIGEST_FIELDS)
         self.assertTrue(node_digest[22] == '31/10/2012')
-               
+              
     def test_flatten_metadata(self):
         node_list = metadata.TimeSeries.find_all('regional-data',
                                                  'economy',
@@ -39,7 +41,7 @@ class TestGenericMethods(unittest.TestCase):
         records = metadata.flatten_metadata(node_list)
         self.assertTrue(first_record_name == next(records)[1])
         self.assertTrue(second_record_uri_tag == next(records)[17])
-        
+    
     def test_add_query_string_params(self):
         self.assertTrue(metadata.add_query_string_params('non-olap-native') == 
                         '?nodeType=non-olap-native')
@@ -57,7 +59,7 @@ class TestGenericMethods(unittest.TestCase):
                         'active-population-survey-bases') == 
                         '/economy/labour-market/active-population-survey-'
                         'bases') 
-  
+ 
 class TestCategory(unittest.TestCase):
 
     def setUp(self):
@@ -72,13 +74,14 @@ class TestCategory(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.Category.get, 'regioal-data')
         self.assertTrue(metadata.Category.get(
                         'regional-data').title
                         == 'Datos regionales')
 
-        self.assertRaises(urllib2.HTTPError, metadata.Category.get, 89)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Category.get, 89)
         self.assertTrue(metadata.Category.get(1).title == 'Datos regionales')
 
     def test_find_all(self):
@@ -131,11 +134,12 @@ class TestDataProvider(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.DataProvider.get,'E0012120')
         self.assertTrue(metadata.DataProvider.get('E00121204').acronym=='INE')
 
-        self.assertRaises(urllib2.HTTPError, metadata.DataProvider.get, 999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.DataProvider.get, 999)
         self.assertTrue(metadata.DataProvider.get(3).title
                         == 'Gobierno de España')
 
@@ -158,12 +162,13 @@ class TestDataSet(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.DataProvider.get, 'elections-autonomix')
         self.assertTrue(metadata.DataSet.get('elections-autonomic').acronym
                         == 'EAUTO')
 
-        self.assertRaises(urllib2.HTTPError, metadata.DataSet.get, 999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.DataSet.get, 999)
         self.assertTrue(metadata.DataSet.get(4).title
                         == 'Aperturas de centros')
 
@@ -188,7 +193,7 @@ class TestLink(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.Link.get, 89)
+        self.assertRaises(requests.exceptions.HTTPError, metadata.Link.get, 89)
         self.assertTrue(metadata.Link.get(478).title == 'LEM')
 
     def test_find_all(self):
@@ -210,7 +215,8 @@ class TestLinkType(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.LinkType.get, 99)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.LinkType.get, 99)
         self.assertTrue(metadata.LinkType.get(6).title == 'RDFS seeAlso')
 
     def test_find_all(self):
@@ -232,7 +238,8 @@ class TestMeasure(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.Measure.get, 9999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Measure.get, 9999)
         self.assertTrue(metadata.Measure.get(5742).code == 'CMestancia')
 
     def test_find_all(self):
@@ -269,10 +276,12 @@ class TestNodeType(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.NodeType.get, 'documen')
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.NodeType.get, 'documen')
         self.assertTrue(metadata.NodeType.get('document').title == 'Documento')
 
-        self.assertRaises(urllib2.HTTPError, metadata.NodeType.get, 99)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.NodeType.get, 99)
         self.assertTrue(metadata.NodeType.get(8).title == 'Categoría')
 
     def test_find_all(self):
@@ -296,11 +305,12 @@ class TestPeriodicity(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.Periodicity.get, 'montly')
         self.assertTrue(metadata.Periodicity.get('monthly').title == 'Mensual')
 
-        self.assertRaises(urllib2.HTTPError, metadata.Periodicity.get, 89)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Periodicity.get, 89)
         self.assertTrue(metadata.Periodicity.get(3).title == 'Trimestral')
 
     def test_find_all(self):
@@ -324,12 +334,13 @@ class TestReferenceArea(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.ReferenceArea.get, 'regioal')
         self.assertTrue(metadata.ReferenceArea.get('regional').title
                         == 'Regional')
 
-        self.assertRaises(urllib2.HTTPError, metadata.ReferenceArea.get, 89)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.ReferenceArea.get, 89)
         self.assertTrue(metadata.ReferenceArea.get(3).title == 'Nacional')
 
     def test_find_all(self):
@@ -353,10 +364,12 @@ class TestSection(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.Section.get, 'economia')
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Section.get, 'economia')
         self.assertTrue(metadata.Section.get('economy').title == 'Economía')
 
-        self.assertRaises(urllib2.HTTPError, metadata.Section.get, 89)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Section.get, 89)
         self.assertTrue(metadata.Section.get(4).title
                         == 'Territorio y Medio ambiente')
 
@@ -372,7 +385,7 @@ class TestSection(unittest.TestCase):
                        metadata.Section.get_subsections('economy'))
     
     def test_get_subsection(self):
-        with self.assertRaises(urllib2.HTTPError):
+        with self.assertRaises(requests.exceptions.HTTPError):
             metadata.Section.get_subsection('economy',
                                                             'lavour-market')
         self.assertTrue(metadata.Section.get_subsection(
@@ -395,7 +408,8 @@ class TestSource(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.Source.get, 8999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Source.get, 8999)
         self.assertTrue(metadata.Source.get(546).uri == 'http://www.ine.es')
 
     def test_find_all(self):
@@ -419,7 +433,8 @@ class TestSubsection(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.Subsection.get, 99)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.Subsection.get, 99)
         self.assertTrue(metadata.Subsection.get(13).title == 'Servicios')
 
     def test_find_all(self):
@@ -443,7 +458,8 @@ class TestTimePeriod(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.TimePeriod.get, 9999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.TimePeriod.get, 9999)
         self.assertTrue(metadata.TimePeriod.get(340).startYear == 1976)
 
     def test_find_all(self):
@@ -467,25 +483,43 @@ class TestTimeSeries(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError,
+        self.assertRaises(requests.exceptions.HTTPError,
                           metadata.TimeSeries.get, 'quarterly-account')
         self.assertTrue(metadata.TimeSeries.get('quarterly-accounting-' +
         'cantabria-base-2008-current-prices').title == 'Precios corrientes')
 
-        self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 9999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.TimeSeries.get, 9999)
         self.assertTrue(metadata.TimeSeries.get(5036).title
                         == 'Nomenclátor Cantabria')
         
-        self.assertRaises(urllib2.HTTPError, metadata.TimeSeries.get, 32)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.TimeSeries.get, 32)
         self.assertTrue(metadata.TimeSeries.get(32, inactive='true').uriTag
                         == 'childbirths')
                         
-    def test_to_dataframe(self):
+    def test_data_to_dataframe(self):
         ts = metadata.TimeSeries.get('quarterly-accounting-' +
                   'cantabria-base-2008-current-prices')
-        df = ts.to_dataframe()
+        df = ts.data_to_dataframe()
         self.assertTrue(len(df) >= 2349)
-        
+   
+    def test_metadata_to_dataframe(self):
+        ts = metadata.TimeSeries.get('quarterly-accounting-' +
+                  'cantabria-base-2008-current-prices')
+        node_list = metadata.TimeSeries.find_all('regional-data',
+                                                 'economy',
+                                                 'labour-market')
+        df = ts.metadata_to_dataframe()
+        metadata_array = []
+        for node in node_list:
+            metadata_array.append(node.metadata_to_dataframe())
+        metadata_df = metadata_array[0].append(metadata_array[1:])
+        self.assertTrue(len(metadata_df) >= 217)
+        self.assertEqual('Precios corrientes', df.iloc[0]['title'])
+        self.assertEqual('ajuste,trimestre,sector', 
+                         df.iloc[0]['automatizedTopics'])
+       
     def test_get_parent(self):
         self.assertTrue(metadata.TimeSeries.get_parent('terrain-series')
                         == metadata.TimeSeries.get('terrain'))
@@ -614,7 +648,8 @@ class TestUnifOfMeasure(unittest.TestCase):
 
     def test_get(self):
 
-        self.assertRaises(urllib2.HTTPError, metadata.UnitOfMeasure.get, 9999)
+        self.assertRaises(requests.exceptions.HTTPError, 
+                          metadata.UnitOfMeasure.get, 9999)
         self.assertTrue(metadata.UnitOfMeasure.get(320).title
                         == 'Número de bibliotecas y ' +
                         'Número de equipos de reproducción')
