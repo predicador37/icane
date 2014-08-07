@@ -76,18 +76,18 @@ class TestCategory(unittest.TestCase):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           metadata.Category.get, 'regioal-data')
-        self.assertTrue(metadata.Category.get(
-                        'regional-data').title
-                        == 'Datos regionales')
+        self.assertEqual(metadata.Category.get('regional-data').title,
+                         'Datos regionales')
+        self.assertEqual(metadata.Category.get(3).uriTag, 'municipal-data')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Category.get, 89)
-        self.assertTrue(metadata.Category.get(1).title == 'Datos regionales')
+        self.assertEqual(metadata.Category.get(1).title, 'Datos regionales')
 
     def test_find_all(self):
 
         categories = metadata.Category.find_all()
-        self.assertTrue(len(categories) == 4)
+        self.assertEqual(len(categories), 4)
         self.assertTrue(metadata.Category.get('municipal-data') in categories)
 
 class TestClass(unittest.TestCase):
@@ -96,13 +96,15 @@ class TestClass(unittest.TestCase):
         pass
     
     def test_get(self):
-        self.assertTrue(metadata.Class.get('time-series','es').fields[0].name
-                        == 'active')
+        self.assertEqual(metadata.Class.get('time-series','es').fields[0].name,
+                         'active')
+        self.assertEqual(metadata.Class.get('time-series','en').fields[1].name,
+                         'apiUris')
 
     def test_find_all(self):
-        self.assertTrue(metadata.Class.find_all('en')[1].name
-                        == 'DataSet')
-                        
+        self.assertEqual(metadata.Class.find_all('en')[1].name, 'DataSet')
+        self.assertEqual(metadata.Class.find_all('en')[2].name, 'TimeSeries')
+                     
 class TestData(unittest.TestCase):
 
     def setUp(self):
@@ -117,7 +119,7 @@ class TestData(unittest.TestCase):
                           datetime.datetime.fromtimestamp(
                           int(str(metadata.Data.get_last_updated_millis()
                           )[0:-3])).strftime('%d/%m/%Y'), '%d/%m/%Y'))
-
+ 
 class TestDataProvider(unittest.TestCase):
 
     def setUp(self):
@@ -128,20 +130,20 @@ class TestDataProvider(unittest.TestCase):
         self.assertRaises(ValueError,
                           metadata.DataProvider,
                           'not a json object')
-        self.assertTrue(metadata.DataProvider(
+        self.assertEqual(metadata.DataProvider(
                         metadata.request('data-provider/1')).title
-                        == 'Instituto Nacional de Estadística')
+                        , 'Instituto Nacional de Estadística')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           metadata.DataProvider.get,'E0012120')
-        self.assertTrue(metadata.DataProvider.get('E00121204').acronym=='INE')
+        self.assertEqual(metadata.DataProvider.get('E00121204').acronym, 'INE')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.DataProvider.get, 999)
-        self.assertTrue(metadata.DataProvider.get(3).title
-                        == 'Gobierno de España')
+        self.assertEqual(metadata.DataProvider.get(3).title,
+                         'Gobierno de España')
 
     def test_find_all(self):
 
@@ -157,20 +159,20 @@ class TestDataSet(unittest.TestCase):
     def test_data_set(self):
 
         self.assertRaises(ValueError, metadata.DataSet, 'not a json object')
-        self.assertTrue(metadata.DataSet(metadata.request('data-set/87')).title
-                        == 'Empleo de las personas con discapacidad')
+        self.assertEqual(metadata.DataSet(
+                         metadata.request('data-set/87')).title,
+                         'Empleo de las personas con discapacidad')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           metadata.DataProvider.get, 'elections-autonomix')
-        self.assertTrue(metadata.DataSet.get('elections-autonomic').acronym
-                        == 'EAUTO')
+        self.assertEqual(metadata.DataSet.get('elections-autonomic').acronym,
+                         'EAUTO')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.DataSet.get, 999)
-        self.assertTrue(metadata.DataSet.get(4).title
-                        == 'Aperturas de centros')
+        self.assertEqual(metadata.DataSet.get(4).title, 'Aperturas de centros')
 
     def test_find_all(self):
 
@@ -178,7 +180,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(len(data_sets) > 100)
         self.assertTrue(metadata.DataSet.get('regional-accounts-1995')
                         in data_sets)
-
+ 
 class TestLink(unittest.TestCase):
 
     def setUp(self):
@@ -187,14 +189,13 @@ class TestLink(unittest.TestCase):
     def test_link(self):
 
         self.assertRaises(ValueError, metadata.Link, 'not a json object')
-        self.assertTrue(metadata.Link(
-                        metadata.request('link/472')).title
-                        == 'DBpedia')
+        self.assertEqual(metadata.Link(
+                        metadata.request('link/472')).title, 'DBpedia')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, metadata.Link.get, 89)
-        self.assertTrue(metadata.Link.get(478).title == 'LEM')
+        self.assertEqual(metadata.Link.get(478).title, 'LEM')
 
     def test_find_all(self):
 
@@ -210,14 +211,14 @@ class TestLinkType(unittest.TestCase):
     def test_link_type(self):
 
         self.assertRaises(ValueError, metadata.LinkType, 'not a json object')
-        self.assertTrue(metadata.LinkType(
-                        metadata.request('link-type/1')).title == 'HTTP')
+        self.assertEqual(metadata.LinkType(
+                        metadata.request('link-type/1')).title, 'HTTP')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.LinkType.get, 99)
-        self.assertTrue(metadata.LinkType.get(6).title == 'RDFS seeAlso')
+        self.assertEqual(metadata.LinkType.get(6).title, 'RDFS seeAlso')
 
     def test_find_all(self):
 
@@ -233,14 +234,14 @@ class TestMeasure(unittest.TestCase):
     def test_measure(self):
 
         self.assertRaises(ValueError, metadata.Measure, 'not a json object')
-        self.assertTrue(metadata.Measure(
-                        metadata.request('measure/1')).title == 'Parados')
+        self.assertEqual(metadata.Measure(
+                        metadata.request('measure/1')).title, 'Parados')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Measure.get, 9999)
-        self.assertTrue(metadata.Measure.get(5742).code == 'CMestancia')
+        self.assertEqual(metadata.Measure.get(5742).code, 'CMestancia')
 
     def test_find_all(self):
 
@@ -262,7 +263,7 @@ class TestMetadata(unittest.TestCase):
                           datetime.datetime.fromtimestamp(
                           int(str(metadata.Metadata.get_last_updated_millis()
                           )[0:-3])).strftime('%d/%m/%Y'), '%d/%m/%Y'))
-
+ 
 class TestNodeType(unittest.TestCase):
 
     def setUp(self):
@@ -271,18 +272,18 @@ class TestNodeType(unittest.TestCase):
     def test_node_type(self):
 
         self.assertRaises(ValueError, metadata.NodeType, 'not a json object')
-        self.assertTrue(metadata.NodeType(
-                        metadata.request('node-type/1')).title == 'Sección')
+        self.assertEqual(metadata.NodeType(
+                        metadata.request('node-type/1')).title, 'Sección')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.NodeType.get, 'documen')
-        self.assertTrue(metadata.NodeType.get('document').title == 'Documento')
+        self.assertEqual(metadata.NodeType.get('document').title, 'Documento')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.NodeType.get, 99)
-        self.assertTrue(metadata.NodeType.get(8).title == 'Categoría')
+        self.assertEqual(metadata.NodeType.get(8).title, 'Categoría')
 
     def test_find_all(self):
 
@@ -299,19 +300,18 @@ class TestPeriodicity(unittest.TestCase):
 
         self.assertRaises(ValueError, metadata.Periodicity,
                           'not a json object')
-        self.assertTrue(metadata.Periodicity(
-                        metadata.request('periodicity/annual')).title
-                        == 'Anual')
+        self.assertEqual(metadata.Periodicity(
+                        metadata.request('periodicity/annual')).title, 'Anual')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           metadata.Periodicity.get, 'montly')
-        self.assertTrue(metadata.Periodicity.get('monthly').title == 'Mensual')
+        self.assertEqual(metadata.Periodicity.get('monthly').title, 'Mensual')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Periodicity.get, 89)
-        self.assertTrue(metadata.Periodicity.get(3).title == 'Trimestral')
+        self.assertEqual(metadata.Periodicity.get(3).title, 'Trimestral')
 
     def test_find_all(self):
 
@@ -328,20 +328,20 @@ class TestReferenceArea(unittest.TestCase):
 
         self.assertRaises(ValueError, metadata.ReferenceArea,
                           'not a json object')
-        self.assertTrue(metadata.ReferenceArea(
-                        metadata.request('reference-area/local')).title
-                        == 'Inframunicipal')
+        self.assertEqual(metadata.ReferenceArea(
+                        metadata.request('reference-area/local')).title,
+                        'Inframunicipal')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           metadata.ReferenceArea.get, 'regioal')
-        self.assertTrue(metadata.ReferenceArea.get('regional').title
-                        == 'Regional')
+        self.assertEqual(metadata.ReferenceArea.get('regional').title, 
+                         'Regional')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.ReferenceArea.get, 89)
-        self.assertTrue(metadata.ReferenceArea.get(3).title == 'Nacional')
+        self.assertEqual(metadata.ReferenceArea.get(3).title, 'Nacional')
 
     def test_find_all(self):
 
@@ -358,20 +358,19 @@ class TestSection(unittest.TestCase):
     def test_section(self):
 
         self.assertRaises(ValueError, metadata.Section, 'not a json object')
-        self.assertTrue(metadata.Section(
-                        metadata.request('section/society')).title
-                        == 'Sociedad')
+        self.assertEqual(metadata.Section(
+                        metadata.request('section/society')).title, 'Sociedad')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Section.get, 'economia')
-        self.assertTrue(metadata.Section.get('economy').title == 'Economía')
+        self.assertEqual(metadata.Section.get('economy').title, 'Economía')
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Section.get, 89)
-        self.assertTrue(metadata.Section.get(4).title
-                        == 'Territorio y Medio ambiente')
+        self.assertEqual(metadata.Section.get(4).title, 
+                         'Territorio y Medio ambiente')
 
     def test_find_all(self):
 
@@ -386,11 +385,9 @@ class TestSection(unittest.TestCase):
     
     def test_get_subsection(self):
         with self.assertRaises(requests.exceptions.HTTPError):
-            metadata.Section.get_subsection('economy',
-                                                            'lavour-market')
-        self.assertTrue(metadata.Section.get_subsection(
-                        'economy','labour-market').title ==
-                        'Mercado de Trabajo')
+            metadata.Section.get_subsection('economy', 'lavour-market')
+        self.assertEqual(metadata.Section.get_subsection(
+                        'economy','labour-market').title, 'Mercado de Trabajo')
 
 class TestSource(unittest.TestCase):
 
@@ -401,23 +398,23 @@ class TestSource(unittest.TestCase):
 
         self.assertRaises(ValueError, metadata.Source,
                           'not a json object')
-        self.assertTrue(metadata.Source(
-                        metadata.request('source/45')).label
-                        == 'Censo agrario. ' +
+        self.assertEqual(metadata.Source(
+                        metadata.request('source/45')).label,
+                        'Censo agrario. ' +
                         'Instituto Nacional de Estadística (INE)')
 
     def test_get(self):
 
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.Source.get, 8999)
-        self.assertTrue(metadata.Source.get(546).uri == 'http://www.ine.es')
+        self.assertEqual(metadata.Source.get(546).uri, 'http://www.ine.es')
 
     def test_find_all(self):
 
         sources = metadata.Source.find_all()
         self.assertTrue(len(sources) > 500)
-        self.assertTrue(metadata.Source.get('456') in sources)
-
+        self.assertTrue(metadata.Source.get('457') in sources)
+'''
 class TestSubsection(unittest.TestCase):
 
     def setUp(self):
@@ -659,6 +656,6 @@ class TestUnifOfMeasure(unittest.TestCase):
         units_of_measure = metadata.UnitOfMeasure.find_all()
         self.assertTrue(len(units_of_measure) > 300)
         self.assertTrue(metadata.UnitOfMeasure.get('45') in units_of_measure)
-
+'''
 if __name__ == '__main__':
     unittest.main()
