@@ -20,6 +20,7 @@ import httplib
 import inspect
 import datetime
 import pandas as pd
+import abc
 
 BASE_URL = 'http://www.icane.es/metadata/api/'
 logging.basicConfig(level=logging.INFO)
@@ -292,9 +293,8 @@ class BaseEntity(dict):
       
     """
 
-    label_ = None
-    plabel_ = None
-
+    __metaclass__ = abc.ABCMeta 
+    @abc.abstractmethod
     def __init__(self, dict_): 
         """Decode JSON to a Python object.
            See http://peedlecode.com/posts/python-json/
@@ -313,7 +313,8 @@ class BaseEntity(dict):
                         items[idx] = self.__class__(item)
             elif isinstance(items, dict):
                 self[key] = self.__class__(items)
-
+                
+    @abc.abstractmethod
     def __getattr__(self, key):
         """Get dictionary key as attribute. Overriden method.
 
@@ -327,7 +328,14 @@ class BaseEntity(dict):
 
         return self[key]
 
+class BaseMixin(dict):
+    __metaclass__ = abc.ABCMeta
+     
+    label_ = None
+    plabel_ = None
+    
     @classmethod
+    @abc.abstractmethod
     def get(cls, uri_tag):
         """Retrieve an entity by its uri_tag.
         Args:
@@ -342,6 +350,7 @@ class BaseEntity(dict):
         return cls(request(cls.label_ + '/' + str(uri_tag)))
 
     @classmethod
+    @abc.abstractmethod
     def find_all(cls):
         """Retrieve all available entities of the class.
         Args:
@@ -358,7 +367,7 @@ class BaseEntity(dict):
             entities.append(cls(entity))
         return entities
 
-class DataEntity(dict):
+class DataMixin(dict):
     """Class to convert deserialized JSON into a Python object. Basic \
        skeleton for data and metadata subclasses.
     
@@ -367,48 +376,12 @@ class DataEntity(dict):
       plabel_ (str): plural label of the converted entity. Ex: "categories"
       
     """
-
+    __metaclass__ = abc.ABCMeta 
+    
     label_ = None
-    plabel_ = None
-
-    def __init__(self, dict_): 
-        """Decode JSON to a Python object.
-           See http://peedlecode.com/posts/python-json/
-
-        Args:
-          dict_ (dict): dictionary that results from deserialized JSON object.
-
-        """
-        
-        super(DataEntity, self).__init__(dict_)
-        for key in self:
-            items = self[key]
-            if isinstance(items, list):
-                for idx, item in enumerate(items):
-                    if isinstance(item, dict):
-                        items[idx] = self.__class__(item)
-            elif isinstance(items, dict):
-                self[key] = self.__class__(items)
-
-    def __getattr__(self, key):
-        """Get dictionary key as attribute. Overriden method.
-
-        Args:
-          key (string): key of the dictionary.
-
-        Returns:
-          self[key](string): key associated value.
-
-        """
-
-        return self[key]
-        
-    def to_json(self):
-        """Return a JSON dump of the object."""
-
-        return json.dumps(self)
 
     @classmethod
+    @abc.abstractmethod
     def get_last_updated(cls):
         """Retrieve last updated date in dd/mm/YY format.
         Args:
@@ -424,6 +397,7 @@ class DataEntity(dict):
                + '/' + 'last-updated')))[0:-3])).strftime('%d/%m/%Y')
                 
     @classmethod
+    @abc.abstractmethod
     def get_last_updated_millis(cls):
         """Retrieve last updated date in milliseconds.
         Args:
@@ -437,7 +411,7 @@ class DataEntity(dict):
         return int(str((request( str(cls.label_)
                 + '/' + 'last-updated'))))
 
-class Category(BaseEntity):
+class Category(BaseEntity, BaseMixin):
     """ Class mapping icane.es 'Category' entity. A Category classifies \
         data based on their temporal or geographical area."""
     
@@ -445,51 +419,12 @@ class Category(BaseEntity):
     plabel_ = 'categories'
 
 
-class Class(dict):
+class Class(BaseEntity):
     """ Class mapping icane.es 'Class' entity."""
     
     label_ = 'class'
     plabel_ = 'classes'
-
-    def __init__(self, dict_): 
-        """Decode JSON to a Python object.
-           See http://peedlecode.com/posts/python-json/
-
-        Args:
-          dict_ (dict): dictionary that results from deserialized JSON object.
-
-        """
-        
-        super(Class, self).__init__(dict_)
-        for key in self:
-            items = self[key]
-            if isinstance(items, list):
-                for idx, item in enumerate(items):
-                    if isinstance(item, dict):
-                        items[idx] = self.__class__(item)
-            elif isinstance(items, dict):
-                self[key] = self.__class__(items)
-
-    def __getattr__(self, key):
-        """Get dictionary key as attribute. Overriden method.
-
-        Args:
-          key (string): key of the dictionary.
-
-        Returns:
-          self[key](string): key associated value.
-
-        """
-
-        return self[key]
-        
-    def to_json(self):
-        """Return a JSON dump of the object."""
-
-        return json.dumps(self)
-
-  
-
+    
     @classmethod
     def get(cls, class_name, lang):
         """Retrieve the description of a class or entity by its name.
@@ -523,13 +458,13 @@ class Class(dict):
             entities.append(cls(entity))
         return entities
 
-class Data(DataEntity):
+class Data(BaseEntity, DataMixin):
     """Class mapping icane.es 'Data' entity."""
 
     label_ = 'data'
      
 
-class DataProvider(BaseEntity):
+class DataProvider(BaseEntity, BaseMixin):
     """Class mapping icane.es 'DataProvider' entity.  A DataProvider \
        represents an organisation which produces data or metadata."""
 
@@ -537,7 +472,7 @@ class DataProvider(BaseEntity):
     plabel_ = 'data-providers'
 
 
-class DataSet(BaseEntity):
+class DataSet(BaseEntity, BaseMixin):
     """Class mapping icane.es 'DataSet' entity. A DataSet represents any \
        organised collection of data."""
 
@@ -545,7 +480,7 @@ class DataSet(BaseEntity):
     plabel_ = 'data-sets'
 
 
-class Link(BaseEntity):
+class Link(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Link' entity. A Link or hyperlink represents \
        a reference to data that can be followed."""
 
@@ -553,7 +488,7 @@ class Link(BaseEntity):
     plabel_ = 'links'
 
 
-class LinkType(BaseEntity):
+class LinkType(BaseEntity, BaseMixin):
     """Class mapping icane.es 'LinkType' entity. A LinkType is used to \
        distinguish among vocabulary specifications."""
 
@@ -561,7 +496,7 @@ class LinkType(BaseEntity):
     plabel_ = 'link-types'
 
 
-class Measure(BaseEntity):
+class Measure(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Measure' entity. A Measure represents a \
        phenomenon or phenomena to be measured in a data set."""
 
@@ -569,13 +504,13 @@ class Measure(BaseEntity):
     plabel_ = 'measures'
 
 
-class Metadata(DataEntity):
+class Metadata(BaseEntity, DataMixin):
     """Class mapping icane.es 'Metadata' entity."""
 
     label_ = 'metadata'
 
 
-class NodeType(BaseEntity):
+class NodeType(BaseEntity, BaseMixin):
     """Class mapping icane.es 'node_type' entity. A node_type is used to \
        distinguish among typologies of levels in a hierarchical \
        representation of metadata."""
@@ -584,7 +519,7 @@ class NodeType(BaseEntity):
     plabel_ = 'node-types'
 
 
-class Periodicity(BaseEntity):
+class Periodicity(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Periodicity' entity. A Periodicity instance \
        represents the frequency of compilation of the data."""
 
@@ -592,7 +527,7 @@ class Periodicity(BaseEntity):
     plabel_ = 'periodicities'
 
 
-class ReferenceArea(BaseEntity):
+class ReferenceArea(BaseEntity, BaseMixin):
     """Class mapping icane.es 'ReferenceArea' entity.  A ReferenceArea \
        represents the geographic area to which the measured statistical \
        phenomenon relates."""
@@ -601,15 +536,14 @@ class ReferenceArea(BaseEntity):
     plabel_ = 'reference-areas'
 
 
-class Section(BaseEntity):
+class Section(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Section' entity. A Section represents \
        the first level of classification within a category."""
 
     label_ = 'section'
     plabel_ = 'sections'
 
-    @classmethod
-    def get_subsections(cls, uri_tag):
+    def get_subsections(self):
         """Retrieve all subsections belonging to a given section.
             Args:
              uri_tag (string): Section uri tag (ie, label).
@@ -619,15 +553,14 @@ class Section(BaseEntity):
 
         """
         subsections = []
-        subsection_array = request(cls.label_ +
-                            '/' + str(uri_tag) +
+        subsection_array = request(self.label_ +
+                            '/' + str(self.uriTag) +
                             '/' + 'subsections')
         for subsection in subsection_array:
             subsections.append(Subsection(subsection))
         return subsections 
     
-    @classmethod
-    def get_subsection(cls, section_uri_tag, subsection_uri_tag):
+    def get_subsection(self, subsection_uri_tag):
         """Retrieve a subsection instance for a given section.
             Args:
              section_uri_tag (string): Section uri tag (ie, label) of the \
@@ -638,11 +571,11 @@ class Section(BaseEntity):
              Python objects of 'Subsection' class.
 
         """
-        return cls(request('section' +
-                     '/'+ section_uri_tag +
+        return Subsection(request('section' +
+                     '/'+ self.uriTag +
                      '/' + subsection_uri_tag))
 
-class Source(BaseEntity):
+class Source(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Source' entity. A Source represents a specific \
        data set, metadata set, database or metadata repository from where \
        data or metadata are available"""
@@ -651,7 +584,7 @@ class Source(BaseEntity):
     plabel_ = 'sources'
 
 
-class Subsection(BaseEntity):
+class Subsection(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Subsection' entity. A Subsection \
        represents the second level of classification within a category, \
        i.e. the next level in a section."""
@@ -659,7 +592,7 @@ class Subsection(BaseEntity):
     label_ = 'subsection'
     plabel_ = 'subsections'
 
-class TimePeriod(BaseEntity):
+class TimePeriod(BaseEntity, BaseMixin):
     """Class mapping icane.es 'TimePeriod' entity. A TimePeriod \
        represents the period of time or point in time to which the measured \
        observation refers"""
@@ -668,7 +601,7 @@ class TimePeriod(BaseEntity):
     plabel_ = 'time-periods'
 
 
-class TimeSeries(dict):
+class TimeSeries(BaseEntity):
     """Class mapping icane.es 'TimeSeries' entity.  A TimeSeries \
        represents a set of ordered observations on a quantitative \
        characteristic of an individual or collective phenomenon taken at \
@@ -678,43 +611,16 @@ class TimeSeries(dict):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
-
-    def __init__(self, dict_):
-        """Decode JSON to a Python object.
-           See http://peedlecode.com/posts/python-json/
-
-        Args:
-          dict_ (dict): dictionary that results from deserialized JSON object.
-
-        """
-        
-        super(TimeSeries, self).__init__(dict_)
-        for key in self:
-            items = self[key]
-            if isinstance(items, list):
-                for idx, item in enumerate(items):
-                    if isinstance(item, dict):
-                        items[idx] = self.__class__(item)
-            elif isinstance(items, dict):
-                self[key] = self.__class__(items)
-
-    def __getattr__(self, key):
-        """Get dictionary key as attribute. Overriden method.
-
-        Args:
-          key (string): key of the dictionary.
-
-        Returns:
-          self[key](string): key associated value.
-
-        """
-
-        return self[key]
-
+    
     @classmethod
     def get(cls, uri_tag, inactive=None):
+        return cls(request(cls.label_ + '/' + str(uri_tag) +
+        add_query_string_params(inactive = inactive)))
+
+    @classmethod
+    def get_inactive(cls, uri_tag):
         return cls(request(cls.label_ + '/' + str(uri_tag) + 
-                    add_query_string_params(inactive = inactive)))
+                    add_query_string_params(inactive = True)))
 
     def data_to_dataframe(self):
         """Convert TimeSeries data into pandas.DataFrame object.
@@ -927,7 +833,7 @@ class TimeSeries(dict):
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
 
-class UnitOfMeasure(BaseEntity):
+class UnitOfMeasure(BaseEntity, BaseMixin):
     """Class mapping icane.es 'UnitOfMeasure' entity. A UnitOfMeasure \
        represents a quantity or increment by which something is counted or \
        described."""

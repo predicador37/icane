@@ -408,14 +408,14 @@ class TestSection(unittest.TestCase):
     def test_get_subsections(self):
         """ Test metadata.Section.get_subsections()"""
         self.assertTrue(metadata.Subsection.get(7) in
-                        metadata.Section.get_subsections('economy'))
+                        metadata.Section.get(2).get_subsections())
     
     def test_get_subsection(self):
         """ Test metadata.Section.get_subsection()"""
         with self.assertRaises(requests.exceptions.HTTPError):
-            metadata.Section.get_subsection('economy', 'lavour-market')
-        self.assertEqual(metadata.Section.get_subsection(
-                        'economy','labour-market').title, 'Mercado de Trabajo')
+            metadata.Section.get('economy').get_subsection('lavour-market')
+        self.assertEqual(metadata.Section.get('economy').get_subsection(
+                        'labour-market').title, 'Mercado de Trabajo')
 
 class TestSource(unittest.TestCase):
     # pylint: disable=R0904
@@ -523,7 +523,7 @@ class TestTimeSeries(unittest.TestCase):
         
         self.assertRaises(requests.exceptions.HTTPError, 
                           metadata.TimeSeries.get, 32)
-        self.assertEqual(metadata.TimeSeries.get(32, inactive='true').uriTag,
+        self.assertEqual(metadata.TimeSeries.get_inactive(32).uriTag,
                          'childbirths')    
     def test_data_to_dataframe(self):
         """ Test metadata.TimeSeries.data_to_dataframe()"""
@@ -588,7 +588,7 @@ class TestTimeSeries(unittest.TestCase):
                                              'territory-environment',
                                              node_type_uri_tag =
                                              'time-series')
-        self.assertTrue(len(data_set_list) > 10)
+        self.assertTrue(len(data_set_list) > 7)
         self.assertTrue(len(time_series_list) > 40)
         self.assertTrue(metadata.TimeSeries.get('terrain-series')
                         in time_series_list)                        
