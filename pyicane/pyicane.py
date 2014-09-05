@@ -2,21 +2,21 @@
 """pyicane-metadata is a Python wrapper for the Statistical Office of \
 Cantabria's (ICANE) metadata restful API. This module parses ICANE's json \
 data and metadata into Python objects and common data structures such as \
-Pandas dataframes [1]_. All ICANE's API classes and methods are covered; \ 
+Pandas dataframes [1]_. All ICANE's API classes and methods are covered; \
 also, time-series data can be downloaded into a Python Pandas dataframe \
-structure. 
+structure.
 
 pyicane-metadata is written and maintained by `Miguel Expósito Martín \
 <https://twitter.com/predicador37>`_ and is distributed under the Apache 2.0 \
 License (see LICENSE file).
 
-.. [1] http://pandas.pydata.org for Python Data Analysis Library information  
+.. [1] http://pandas.pydata.org for Python Data Analysis Library information
 """
 
 import requests
 import logging
 import inspect
-import datetime
+from datetime import datetime
 import pandas as pd
 import abc
 
@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def request(path):
-    """Send a request to a given URL accepting JSON format and return a JSON \ 
+    """Send a request to a given URL accepting JSON format and return a JSON \
        converted Python object. If no "http://" protocol is specified, \
        BASE_URL is used in the request.
 
@@ -52,15 +52,12 @@ def request(path):
             requested_object = requests.get(BASE_URL + path, headers=headers)
         requested_object.raise_for_status()
     except requests.exceptions.HTTPError, exception:
-        LOGGER.error((inspect.stack()[0][3]) +
-                               ': HTTPError = ' +
-                               str(exception.response.status_code) +
-                               ' ' + str(exception.response.reason) +
-                               ' ' + str(path))
+        LOGGER.error((inspect.stack()[0][3]) + ': HTTPError = ' +
+                     str(exception.response.status_code) + ' ' +
+                     str(exception.response.reason) + ' ' + str(path))
         raise
     except requests.exceptions.InvalidURL, exception:
-        LOGGER.error('URLError = ' + str(exception.reason) +
-                              ' ' + str(path))
+        LOGGER.error('URLError = ' + str(exception.reason) + ' ' + str(path))
         raise
     except Exception:
         import traceback
@@ -70,6 +67,7 @@ def request(path):
         response = requested_object.json()
         return response
 
+
 def node_digest_model(node):
     """Extracts plain relevant metadata fields only.
 
@@ -78,7 +76,7 @@ def node_digest_model(node):
                   containing nested TimeSeries objects.
     Returns:
       List of relevant time-series metadata fields with the intention of \
-      using them to populate a CSV row. 
+      using them to populate a CSV row.
 
     """
 
@@ -102,30 +100,31 @@ def node_digest_model(node):
         sources_label = ''
     else:
         sources_label = node.sources[0].label
-    
-    return [node.id, node.title, node.active, node.uri, 
-                   node.metadataUri, node.resourceUri, 
-                   node.documentation, node.methodology, 
-                   node.mapScope, node.referenceResources, 
-                   node.description, node.theme, node.language, 
-                   node.publisher, node.license, node.topics, 
-                   node.automatizedTopics, node.uriTag, node.uriTagEs,
-                   node.initialPeriodDescription, 
-                   node.finalPeriodDescription, 
-                   datetime.datetime.fromtimestamp(
-                   int(str(data_update)[0:-3])).strftime('%d/%m/%Y'),
-                   datetime.datetime.fromtimestamp(
-                   int(str(node.dateCreated)[0:-3])).strftime('%d/%m/%Y'),
-                   datetime.datetime.fromtimestamp(
-                   int(str(node.lastUpdated)[0:-3])).strftime('%d/%m/%Y'),
-                   node.subsection.title,
-                   node.subsection.section.title,
-                   node.category.title, dataset_title,
-                   periodicity_title, node.nodeType.title,
-                   reference_area_title, sources_label,
-                   str(', '.join([': '.join((x.title, x.unit)) for x in 
-                   node.measures])), 
-                   str([', '.join((x.uri,'')) for x in node.apiUris])]
+
+    return [node.id, node.title, node.active, node.uri,
+            node.metadataUri, node.resourceUri,
+            node.documentation, node.methodology,
+            node.mapScope, node.referenceResources,
+            node.description, node.theme, node.language,
+            node.publisher, node.license, node.topics,
+            node.automatizedTopics, node.uriTag, node.uriTagEs,
+            node.initialPeriodDescription,
+            node.finalPeriodDescription,
+            datetime.fromtimestamp(int(str(data_update)[0:-3])).
+            strftime('%d/%m/%Y'),
+            datetime.fromtimestamp(int(str(node.dateCreated)[0:-3])).
+            strftime('%d/%m/%Y'),
+            datetime.fromtimestamp(int(str(node.lastUpdated)[0:-3])).
+            strftime('%d/%m/%Y'),
+            node.subsection.title,
+            node.subsection.section.title,
+            node.category.title, dataset_title,
+            periodicity_title, node.nodeType.title,
+            reference_area_title, sources_label,
+            str(', '.join([': '.join((x.title, x.unit)) for x in
+                node.measures])),
+            str([', '.join((x.uri, '')) for x in node.apiUris])]
+
 
 def flatten_metadata(data):
     """Flatten a nested dict or list of nested dicts generated from a \
@@ -142,30 +141,31 @@ def flatten_metadata(data):
                                                  flattened format.
     """
     if isinstance(data, list):
-        for node in data:    
+        for node in data:
             if node.nodeType.uriTag in ['time-series',
                                         'non-olap-native',
-                                        'document']: #leaf node
+                                        'document']:  # leaf node
                 yield node_digest_model(node)
 
             else:
                 yield node_digest_model(node)
                 for child in flatten_metadata(node.children):
-                    yield child 
+                    yield child
     elif isinstance(data, dict):
-        if data.nodeType.uriTag in ['time-series', \
+        if data.nodeType.uriTag in ['time-series',
                                     'non-olap-native',
-                                    'document']: #leaf node
+                                    'document']:  # leaf node
             yield node_digest_model(data)
 
         else:
             yield node_digest_model(data)
             for child in flatten_metadata(data.children):
-                yield child 
+                yield child
+
 
 def flatten_data(data, record=None):
     """Flatten a nested dict generated from a deserialized JSON object /
-       provided by ICANE's Restful data API. 
+       provided by ICANE's Restful data API.
 
     Args:
       data (dict): a dictionary generated by the ''request()'' function with \
@@ -178,25 +178,25 @@ def flatten_data(data, record=None):
       row (list): A list representing a row in a flattened matrix.
 
     """
-    
-    if data.get('data'):#first level
+
+    if data.get('data'):  # first level
         record = []
         row = []
         for j in sorted(list(flatten_data(data['data'], record))):
             yield j
-    else: #other levels
+    else:  # other levels
         for k in sorted(list(data)):
-            if isinstance(data[k], dict):      
+            if isinstance(data[k], dict):
                 record.append(k)
-                #try:
-                
+                # try:
+
                 for i in sorted(list(flatten_data(data[k], record))):
                     if len(record) == 1:
                         record.pop()
                     yield i
-                #except Exception:
-                #    pass
-            else: #last level
+                # nexcept Exception:
+                # pass
+            else:  # last level
                 row = list(record)
                 row.append(k)
                 row.append(data[k])
@@ -204,11 +204,12 @@ def flatten_data(data, record=None):
         if record:
             record.pop()
 
-def add_query_string_params(node_type = None, inactive = None):
+
+def add_query_string_params(node_type=None, inactive=None):
     """Add query string params to a string representing part of a URI.
 
     Args:
-      node_type(string, optional): specifies the node type to return. Accepted \ 
+      node_type(string, optional): specifies the node type to return. Accepted\
                                   values: 'time-series', 'data-set', \
                                   'folder','theme', etc. See node_type class \
                                   for more info. Defaults to None.
@@ -226,20 +227,21 @@ def add_query_string_params(node_type = None, inactive = None):
     operator = '?'
     for i, (argument, value) in enumerate(arguments.iteritems()):
         if (i == 0) and value is not None:
-            argument = argument.replace('node_type','nodeType')
+            argument = argument.replace('node_type', 'nodeType')
             query_string = query_string + operator + str(argument) + '=' +\
-                               str(value)
+                str(value)
             operator = '&'
-        elif (i==0) and value is None:
+        elif (i == 0) and value is None:
             operator = '?'
         elif (value is not None):
             query_string = query_string + operator + str(argument) + '=' +\
-                               str(value)
+                str(value)
             operator = '?'
     return query_string
 
-def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
-                    data_set_uri_tag = None):
+
+def add_path_params(section_uri_tag=None, subsection_uri_tag=None,
+                    data_set_uri_tag=None):
     """Concatenate path params to a string representing part of a URI.
 
     Args:
@@ -266,13 +268,12 @@ def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
 
     """
 
-    # argument order must be preserved, I can't find a better way of 
+    # argument order must be preserved, I can't find a better way of
     # doing this, since it is not an OrderedDict.
     arguments = locals()
     values = []
-    ordered_arg_names = ['section_uri_tag', 'subsection_uri_tag', 
-                 'data_set_uri_tag']
-   
+    ordered_arg_names = ['section_uri_tag', 'subsection_uri_tag',
+                         'data_set_uri_tag']
     for name in ordered_arg_names:
         values.append(arguments[name])
     path = ''
@@ -285,16 +286,17 @@ def add_path_params(section_uri_tag = None, subsection_uri_tag = None,
 class BaseEntity(dict):
     """Class to convert deserialized JSON into a Python object. Basic \
        skeleton for almost all the module classes.
-    
+
     Attributes:
       label_ (str): singular label of the converted entity. Ex: "category"
       plabel_ (str): plural label of the converted entity. Ex: "categories"
-      
+
     """
 
-    __metaclass__ = abc.ABCMeta 
+    __metaclass__ = abc.ABCMeta
+
     @abc.abstractmethod
-    def __init__(self, dict_): 
+    def __init__(self, dict_):
         """Decode JSON to a Python object.
            See http://peedlecode.com/posts/python-json/
 
@@ -302,7 +304,7 @@ class BaseEntity(dict):
           dict_ (dict): dictionary that results from deserialized JSON object.
 
         """
-        
+
         super(BaseEntity, self).__init__(dict_)
         for key in self:
             items = self[key]
@@ -312,7 +314,7 @@ class BaseEntity(dict):
                         items[idx] = self.__class__(item)
             elif isinstance(items, dict):
                 self[key] = self.__class__(items)
-                
+
     @abc.abstractmethod
     def __getattr__(self, key):
         """Get dictionary key as attribute. Overriden method.
@@ -327,12 +329,20 @@ class BaseEntity(dict):
 
         return self[key]
 
+
 class BaseMixin(dict):
+    """Mixin class with attributes and methods shared by most of the classes.
+
+    Attributes:
+      label_ (str): singular label of the converted entity. Ex: "category"
+      plabel_ (str): plural label of the converted entity. Ex: "categories"
+
+    """
     __metaclass__ = abc.ABCMeta
-     
+
     label_ = None
     plabel_ = None
-    
+
     @classmethod
     @abc.abstractmethod
     def get(cls, uri_tag):
@@ -366,17 +376,16 @@ class BaseMixin(dict):
             entities.append(cls(entity))
         return entities
 
+
 class DataMixin(dict):
-    """Class to convert deserialized JSON into a Python object. Basic \
-       skeleton for data and metadata subclasses.
-    
+    """Mixin with attributes and methods shared by data-type classes.
+
     Attributes:
-      label_ (str): singular label of the converted entity. Ex: "category"
-      plabel_ (str): plural label of the converted entity. Ex: "categories"
-      
+      label_ (str): singular label of the converted entity. Ex: "data"
+
     """
-    __metaclass__ = abc.ABCMeta 
-    
+    __metaclass__ = abc.ABCMeta
+
     label_ = None
 
     @classmethod
@@ -391,10 +400,10 @@ class DataMixin(dict):
 
         """
 
-        return datetime.datetime.fromtimestamp(
-               int(str((request( str(cls.label_)
-               + '/' + 'last-updated')))[0:-3])).strftime('%d/%m/%Y')
-                
+        return datetime.fromtimestamp(
+            int(str((request(str(cls.label_) + '/' + 'last-updated')))[0:-3]))\
+            .strftime('%d/%m/%Y')
+
     @classmethod
     @abc.abstractmethod
     def get_last_updated_millis(cls):
@@ -403,27 +412,27 @@ class DataMixin(dict):
          None.
 
         Returns:
-         int with milliseconds. 
+         int with milliseconds.
 
         """
 
-        return int(str((request( str(cls.label_)
-                + '/' + 'last-updated'))))
+        return int(str((request(str(cls.label_) + '/' + 'last-updated'))))
+
 
 class Category(BaseEntity, BaseMixin):
     """ Class mapping icane.es 'Category' entity. A Category classifies \
         data based on their temporal or geographical area."""
-    
+
     label_ = 'category'
     plabel_ = 'categories'
 
 
 class Class(BaseEntity):
     """ Class mapping icane.es 'Class' entity."""
-    
+
     label_ = 'class'
     plabel_ = 'classes'
-    
+
     @classmethod
     def get(cls, class_name, lang):
         """Retrieve the description of a class or entity by its name.
@@ -457,11 +466,12 @@ class Class(BaseEntity):
             entities.append(cls(entity))
         return entities
 
+
 class Data(BaseEntity, DataMixin):
     """Class mapping icane.es 'Data' entity."""
 
     label_ = 'data'
-     
+
 
 class DataProvider(BaseEntity, BaseMixin):
     """Class mapping icane.es 'DataProvider' entity.  A DataProvider \
@@ -552,13 +562,12 @@ class Section(BaseEntity, BaseMixin):
 
         """
         subsections = []
-        subsection_array = request(self.label_ +
-                            '/' + str(self.uriTag) +
-                            '/' + 'subsections')
+        subsection_array = request(self.label_ + '/' + str(self.uriTag) + '/' +
+                                   'subsections')
         for subsection in subsection_array:
             subsections.append(Subsection(subsection))
-        return subsections 
-    
+        return subsections
+
     def get_subsection(self, subsection_uri_tag):
         """Retrieve a subsection instance for a given section.
             Args:
@@ -570,9 +579,9 @@ class Section(BaseEntity, BaseMixin):
              Python objects of 'Subsection' class.
 
         """
-        return Subsection(request('section' +
-                     '/'+ self.uriTag +
-                     '/' + subsection_uri_tag))
+        return Subsection(request('section' + '/' + str(self.uriTag) + '/' +
+                                  subsection_uri_tag))
+
 
 class Source(BaseEntity, BaseMixin):
     """Class mapping icane.es 'Source' entity. A Source represents a specific \
@@ -590,6 +599,7 @@ class Subsection(BaseEntity, BaseMixin):
 
     label_ = 'subsection'
     plabel_ = 'subsections'
+
 
 class TimePeriod(BaseEntity, BaseMixin):
     """Class mapping icane.es 'TimePeriod' entity. A TimePeriod \
@@ -610,11 +620,11 @@ class TimeSeries(BaseEntity):
 
     label_ = 'time-series'
     plabel_ = 'time-series-list'
-    
+
     @classmethod
     def get(cls, uri_tag, inactive=None):
         return cls(request(cls.label_ + '/' + str(uri_tag) +
-        add_query_string_params(inactive = inactive)))
+                   add_query_string_params(inactive=inactive)))
 
     def data_to_dataframe(self):
         """Convert TimeSeries data into pandas.DataFrame object.
@@ -622,18 +632,18 @@ class TimeSeries(BaseEntity):
             Returns:
             Python Pandas Dataframe.
         """
-        resource = request(self.apiUris[3].uri) #third element is icane json
+        resource = request(self.apiUris[3].uri)  # third element is icane json
         data = pd.DataFrame(list(flatten_data(resource)))
         headers = list(resource['headers'])
         headers.append(unicode('Valor'))
         data.columns = headers
         if (self.category.id == 3):
-            time_series = data.set_index([unicode(headers[0])]) 
-            #TODO: check indexes pos
+            time_series = data.set_index([unicode(headers[0])])
+            # TODO: check indexes pos
         else:
             time_series = data.set_index([unicode(headers[len(headers)-2])])
         return time_series
-    
+
     def metadata_to_dataframe(self):
         """Convert TimeSeries metadata digest into pandas.DataFrame object.
 
@@ -641,19 +651,27 @@ class TimeSeries(BaseEntity):
             Python Pandas Dataframe.
         """
         table = []
-        
-        
         for node in flatten_metadata(self):
             table.append(node)
-        metadata = pd.DataFrame(table, columns = ['id', 'title', 'active', 
-                   'uri', 'metadataUri', 'resourceUri', 'documentation',
-                   'methodology', 'mapScope', 'referenceResources', 
-                   'description', 'theme', 'language', 'publisher', 'license', 
-                   'topics', 'automatizedTopics', 'uriTag', 'uriTagEs', 
-                   'initialPeriodDescription', 'finalPeriodDescription', 
-                   'dataUpdate', 'dateCreated', 'lastUpdated', 'subsection', 
-                   'section', 'category', 'dataset', 'periodicty', 'nodeType', 
-                   'referenceArea', 'sources', 'measures', 'apiUris'])
+        metadata = pd.DataFrame(table, columns=['id', 'title', 'active', 'uri',
+                                                'metadataUri', 'resourceUri',
+                                                'documentation', 'methodology',
+                                                'mapScope',
+                                                'referenceResources',
+                                                'description', 'theme',
+                                                'language', 'publisher',
+                                                'license', 'topics',
+                                                'automatizedTopics',
+                                                'uriTag', 'uriTagEs',
+                                                'initialPeriodDescription',
+                                                'finalPeriodDescription',
+                                                'dataUpdate', 'dateCreated',
+                                                'lastUpdated', 'subsection',
+                                                'section', 'category',
+                                                'dataset', 'periodicty',
+                                                'nodeType', 'referenceArea',
+                                                'sources', 'measures',
+                                                'apiUris'])
         return metadata
 
     @classmethod
@@ -669,7 +687,7 @@ class TimeSeries(BaseEntity):
 
         """
         return cls(request(cls.label_ + '/' + str(uri_tag) + '/' + 'parent'))
-        
+
     @classmethod
     def get_parents(cls, uri_tag):
         """Retrieve all ancestors of the node or TimeSeries given by its \
@@ -683,13 +701,12 @@ class TimeSeries(BaseEntity):
 
         """
         parents = []
-        parents_array = request(cls.label_ +
-                            '/' + str(uri_tag) +
-                            '/' + 'parents')
+        parents_array = request(cls.label_ + '/' + str(uri_tag) + '/' +
+                                'parents')
         for ancestor in parents_array:
             parents.append(TimeSeries(ancestor))
         return parents
-    
+
     @classmethod
     def get_possible_subsections(cls, uri_tag):
         """Retrieve all possible subsections associated to a node or \
@@ -709,7 +726,7 @@ class TimeSeries(BaseEntity):
         for subsection in subsections_array:
             subsections.append(Subsection(subsection))
         return subsections
-    
+
     @classmethod
     def get_possible_time_series(cls, uri_tag):
         """Retrieve all possible nodes or time series associated to a node or \
@@ -739,12 +756,12 @@ class TimeSeries(BaseEntity):
             Args:
              category_uri_tag (string): uri_tag (ie, label) of the category.
              section_uri_tag (string): uri_tag (ie, label) of the section.
-             subsection_uri_tag (string): uri_tag (ie, label) of the subsection.
+             subsection_uri_tag (string): uri_tag (ie, label) of the\
+                                          subsection.
 
             Returns:
              Python list of TimeSeries objects with node_type='data-set' for \
              a given category, section and subsection.
-             
 
         """
         time_series_list = []
@@ -755,13 +772,12 @@ class TimeSeries(BaseEntity):
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
-        
+
     @classmethod
-    def find_all_by_last_updated(cls,
-                          data_updated=None,
-                          metadata_updated=None):
+    def find_all_by_last_updated(cls, data_updated=None,
+                                 metadata_updated=None):
         """Retrieve all time series for a given data or metadata update date.
-            
+
             Args:
              data_updated (string, optional): last data update date. Both \
                                              arguments are mutually exclusive.
@@ -771,7 +787,7 @@ class TimeSeries(BaseEntity):
 
             Returns:
              Python list of TimeSeries objects whose data or metadata have \
-             been updated in the specified dates. 
+             been updated in the specified dates.
 
         """
         time_series_list = []
@@ -780,18 +796,15 @@ class TimeSeries(BaseEntity):
                                         data_updated)
         elif (metadata_updated):
             time_series_array = request(cls.plabel_ + '?data_updated=' +
-                                        metadata_updated)    
+                                        metadata_updated)
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
 
     @classmethod
-    def find_all(cls, category_uri_tag,
-                      section_uri_tag = None,
-                      subsection_uri_tag = None,
-                      data_set_uri_tag = None,
-                      node_type_uri_tag = None,
-                      inactive = None):
+    def find_all(cls, category_uri_tag, section_uri_tag=None,
+                 subsection_uri_tag=None, data_set_uri_tag=None,
+                 node_type_uri_tag=None, inactive=None):
         """Retrieve all nodes of type dataset given its category, section \
             and subsection.
             Args:
@@ -818,14 +831,15 @@ class TimeSeries(BaseEntity):
 
         """
         time_series_list = []
-        http_request =  category_uri_tag + add_path_params(
-                        section_uri_tag, subsection_uri_tag, data_set_uri_tag)\
-                        + '/' + cls.plabel_ +\
-                        add_query_string_params(node_type_uri_tag, inactive)
+        http_request = category_uri_tag +\
+            add_path_params(section_uri_tag, subsection_uri_tag,
+                            data_set_uri_tag) + '/' + cls.plabel_ +\
+            add_query_string_params(node_type_uri_tag, inactive)
         time_series_array = request(http_request)
         for time_series in time_series_array:
             time_series_list.append(TimeSeries(time_series))
         return time_series_list
+
 
 class UnitOfMeasure(BaseEntity, BaseMixin):
     """Class mapping icane.es 'UnitOfMeasure' entity. A UnitOfMeasure \
