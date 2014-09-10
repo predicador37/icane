@@ -121,7 +121,8 @@ def node_digest_model(node):
             node.category.title, dataset_title,
             periodicity_title, node.nodeType.title,
             reference_area_title, sources_label,
-            str(', '.join([': '.join((x.title, x.unit)) for x in
+            str(', '.join([': '.join((x.title.encode('utf-8'),
+                                      x.unit.encode('utf-8'))) for x in
                 node.measures])),
             str([', '.join((x.uri, '')) for x in node.apiUris])]
 

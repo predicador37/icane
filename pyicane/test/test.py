@@ -24,7 +24,7 @@ class TestGenericMethods(unittest.TestCase):
         """ Test pyicane.request() """
         section_instance = pyicane.Section(pyicane.request(
                                            'section/economy'))
-        self.assertTrue(section_instance.title == 'Economía')
+        self.assertTrue(section_instance.title.encode("utf-8") == 'Economía')
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.request, 'section/economic')
 
@@ -45,8 +45,9 @@ class TestGenericMethods(unittest.TestCase):
         first_record_name = 'Estadísticas de empleo y paro'
         second_record_uri_tag = 'active-population-survey-bases'
         records = pyicane.flatten_metadata(node_list)
-        self.assertTrue(first_record_name == next(records)[1])
-        self.assertTrue(second_record_uri_tag == next(records)[17])
+        self.assertTrue(first_record_name == next(records)[1].encode("utf-8"))
+        self.assertTrue(second_record_uri_tag == next(records)[17].
+                        encode("utf-8"))
 
     def test_add_query_string_params(self):
         """ Test pyicane.add_query_string_params() """
@@ -81,7 +82,7 @@ class TestCategory(unittest.TestCase):
         self.assertRaises(ValueError, pyicane.Category, 'not a json object')
         self.assertTrue(pyicane.Category(
                         pyicane.request('category/historical-data')).title
-                        == 'Datos históricos')
+                        .encode("utf-8") == 'Datos históricos')
 
     def test_get(self):
         """ Test pyicane.Category get()"""
@@ -151,8 +152,8 @@ class TestDataProvider(unittest.TestCase):
                           pyicane.DataProvider,
                           'not a json object')
         self.assertEqual(pyicane.DataProvider(
-                         pyicane.request('data-provider/1')).title,
-                         'Instituto Nacional de Estadística')
+                         pyicane.request('data-provider/1')).title
+                         .encode("utf-8"), 'Instituto Nacional de Estadística')
 
     def test_get(self):
         """ Test pyicane.DataProvider.get()"""
@@ -162,7 +163,7 @@ class TestDataProvider(unittest.TestCase):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.DataProvider.get, 999)
-        self.assertEqual(pyicane.DataProvider.get(3).title,
+        self.assertEqual(pyicane.DataProvider.get(3).title.encode('utf-8'),
                          'Gobierno de España')
 
     def test_find_all(self):
@@ -306,7 +307,7 @@ class TestNodeType(unittest.TestCase):
         """ Test pyicane.NodeType class"""
         self.assertRaises(ValueError, pyicane.NodeType, 'not a json object')
         self.assertEqual(pyicane.NodeType(
-            pyicane.request('node-type/1')).title, 'Sección')
+            pyicane.request('node-type/1')).title.encode('utf-8'), 'Sección')
 
     def test_get(self):
         """ Test pyicane.NodeType.get()"""
@@ -316,7 +317,8 @@ class TestNodeType(unittest.TestCase):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.NodeType.get, 99)
-        self.assertEqual(pyicane.NodeType.get(8).title, 'Categoría')
+        self.assertEqual(pyicane.NodeType.get(8).title.encode('utf-8'),
+                         'Categoría')
 
     def test_find_all(self):
         """ Test pyicane.NodeType.find_all()"""
@@ -403,7 +405,8 @@ class TestSection(unittest.TestCase):
         """ Test pyicane.Section.get()"""
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.Section.get, 'economia')
-        self.assertEqual(pyicane.Section.get('economy').title, 'Economía')
+        self.assertEqual(pyicane.Section.get('economy').title.encode('utf-8'),
+                         'Economía')
 
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.Section.get, 89)
@@ -440,8 +443,8 @@ class TestSource(unittest.TestCase):
         self.assertRaises(ValueError, pyicane.Source,
                           'not a json object')
         self.assertEqual(pyicane.Source(
-            pyicane.request('source/45')).label, 'Censo agrario. ' +
-            'Instituto Nacional de Estadística (INE)')
+            pyicane.request('source/45')).label.encode('utf-8'),
+            'Censo agrario. Instituto Nacional de Estadística (INE)')
 
     def test_get(self):
         """ Test pyicane.Source.get()"""
@@ -467,7 +470,8 @@ class TestSubsection(unittest.TestCase):
         self.assertRaises(ValueError, pyicane.Subsection,
                           'not a json object')
         self.assertEqual(pyicane.Subsection(
-            pyicane.request('subsection/1')).title, 'Cifras de población')
+            pyicane.request('subsection/1')).title.encode('utf-8'),
+            'Cifras de población')
 
     def test_get(self):
         """ Test pyicane.Subsection.get()"""
@@ -532,7 +536,7 @@ class TestTimeSeries(unittest.TestCase):
 
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.TimeSeries.get, 9999)
-        self.assertEqual(pyicane.TimeSeries.get(5036).title,
+        self.assertEqual(pyicane.TimeSeries.get(5036).title.encode("utf-8"),
                          'Nomenclátor Cantabria')
 
         self.assertRaises(requests.exceptions.HTTPError,
@@ -605,7 +609,7 @@ class TestTimeSeries(unittest.TestCase):
                                                        node_type_uri_tag='time'
                                                        '-series')
         self.assertTrue(len(data_set_list) > 7)
-        self.assertTrue(len(time_series_list) > 40)
+        self.assertTrue(len(time_series_list) > 35)
         self.assertTrue(pyicane.TimeSeries.get('terrain-series')
                         in time_series_list)
         self.assertTrue(pyicane.TimeSeries.get('elections-municipal')
@@ -691,13 +695,14 @@ class TestUnifOfMeasure(unittest.TestCase):
         self.assertRaises(ValueError, pyicane.UnitOfMeasure,
                           'not a json object')
         self.assertEqual(pyicane.UnitOfMeasure(
-            pyicane.request('unit-of-measure/1')).title, 'Años')
+            pyicane.request('unit-of-measure/1')).title.encode('utf-8'),
+            'Años')
 
     def test_get(self):
         """ Test pyicane.UnitOfMeasure.get()"""
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.UnitOfMeasure.get, 9999)
-        self.assertEqual(pyicane.UnitOfMeasure.get(320).title,
+        self.assertEqual(pyicane.UnitOfMeasure.get(320).title.encode('utf-8'),
                          'Número de bibliotecas y '
                          'Número de equipos de reproducción')
 
