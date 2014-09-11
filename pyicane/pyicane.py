@@ -629,7 +629,9 @@ class TimeSeries(BaseEntity):
                            add_query_string_params(inactive=inactive)))
 
     def data_as_dataframe(self):
-        """Convert TimeSeries data into pandas.DataFrame object.
+        """Convert TimeSeries data into pandas.DataFrame object. Default \
+           index will be the temporal dimension if exists; if not, \
+           the municipality dimension will be chosen.
 
             Returns:
             Python Pandas Dataframe.
