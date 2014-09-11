@@ -52,7 +52,7 @@ Let's check the most relevant metadata::
 
 Get last updated data
 ---------------------
-Which was the last ICANE's API data update?:
+Which was the last ICANE's API data update::
 
     from pyicane import pyicane
 
