@@ -1,7 +1,7 @@
 =======
 pyicane
 =======
-***pyicane*** is a Python wrapper for the Statistical Office of
+**pyicane** is a Python wrapper for the Statistical Office of
 Cantabria's (ICANE) metadata restful API. This module parses ICANE's json data
 and metadata into Python objects and common data structures such as Pandas
 dataframes [1]_. All ICANE's API classes and methods are covered; also,
@@ -52,7 +52,7 @@ Let's check the most relevant metadata::
 
 Get last updated data
 ---------------------
-Which was the last ICANE's API data update?::
+Which was the last ICANE's API data update?:
 
     from pyicane import pyicane
 
