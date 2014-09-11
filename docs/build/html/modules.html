@@ -56,8 +56,8 @@
 <ul class="simple">
 </ul>
 </div>
-<span class="target" id="module-pyicane"></span><p>pyicane-metadata is a Python wrapper for the Statistical Office of Cantabria&#8217;s (ICANE) metadata restful API. This module parses ICANE&#8217;s json data and metadata into Python objects and common data structures such as Pandas dataframes <a class="footnote-reference" href="#id2" id="id1">[1]</a>. All ICANE&#8217;s API classes and methods are covered; also, time-series data can be downloaded into a Python Pandas dataframe structure.</p>
-<p>pyicane-metadata is written and maintained by <a class="reference external" href="https://twitter.com/predicador37">Miguel Expósito Martín</a> and is distributed under the Apache 2.0 License (see LICENSE file).</p>
+<span class="target" id="module-pyicane"></span><p>pyicane is a Python wrapper for the Statistical Office of Cantabria&#8217;s (ICANE) metadata restful API. This module parses ICANE&#8217;s json data and metadata into Python objects and common data structures such as Pandas dataframes <a class="footnote-reference" href="#id2" id="id1">[1]</a>. All ICANE&#8217;s API classes and methods are covered; also, time-series data can be downloaded into a Python Pandas dataframe structure.</p>
+<p>pyicane is written and maintained by <a class="reference external" href="https://twitter.com/predicador37">Miguel Expósito Martín</a> and is distributed under the Apache 2.0 License (see LICENSE file).</p>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -67,7 +67,7 @@
 <dl class="class">
 <dt id="pyicane.BaseEntity">
 <em class="property">class </em><tt class="descclassname">pyicane.</tt><tt class="descname">BaseEntity</tt><big>(</big><em>dict_</em><big>)</big><a class="headerlink" href="#pyicane.BaseEntity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class to convert deserialized JSON into a Python object. Basic        skeleton for almost all the module classes.</p>
+<dd><p>Abstract class to convert deserialized JSON into a Python object. Basic        skeleton for almost all the module classes.</p>
 <dl class="attribute">
 <dt id="pyicane.BaseEntity.label_">
 <tt class="descname">label_</tt><em class="property"> str</em><a class="headerlink" href="#pyicane.BaseEntity.label_" title="Permalink to this definition">¶</a></dt>
@@ -101,17 +101,17 @@
 <dl class="class">
 <dt id="pyicane.BaseMixin">
 <em class="property">class </em><tt class="descclassname">pyicane.</tt><tt class="descname">BaseMixin</tt><a class="headerlink" href="#pyicane.BaseMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin class with attributes and methods shared by most of the classes.</p>
+<dd><p>Mixin abstract class with attributes and methods shared by most of the        classes.</p>
 <dl class="attribute">
 <dt id="pyicane.BaseMixin.label_">
 <tt class="descname">label_</tt><em class="property"> str</em><a class="headerlink" href="#pyicane.BaseMixin.label_" title="Permalink to this definition">¶</a></dt>
-<dd><p>singular label of the converted entity. Ex: &#8220;category&#8221;</p>
+<dd><p>singular label of the converted entity. Ex: &#8220;category&#8221;.                     Defaults to None in the parent class.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyicane.BaseMixin.plabel_">
 <tt class="descname">plabel_</tt><em class="property"> str</em><a class="headerlink" href="#pyicane.BaseMixin.plabel_" title="Permalink to this definition">¶</a></dt>
-<dd><p>plural label of the converted entity. Ex: &#8220;categories&#8221;</p>
+<dd><p>plural label of the converted entity. Ex: &#8220;categories&#8221;.                      Defaults to None in the parent class.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -158,7 +158,7 @@
 <dl class="classmethod">
 <dt id="pyicane.Class.find_all">
 <em class="property">classmethod </em><tt class="descname">find_all</tt><big>(</big><em>lang</em><big>)</big><a class="headerlink" href="#pyicane.Class.find_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the description of all classes or entitiese.
+<dd><p>Retrieve the description of all classes or entities.
 :param lang: language; possible values: &#8216;es&#8217;, &#8216;en&#8217;</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -176,7 +176,7 @@
 <dd><p>Retrieve the description of a class or entity by its name.
 :param class_name: name of the class to get the description of.
 :type class_name: string
-:param lang: language; possible values: &#8216;es&#8217;, &#8216;en&#8217;</p>
+:param lang: language; possible values: &#8216;es&#8217;, &#8216;en&#8217;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -198,11 +198,11 @@
 <dl class="class">
 <dt id="pyicane.DataMixin">
 <em class="property">class </em><tt class="descclassname">pyicane.</tt><tt class="descname">DataMixin</tt><a class="headerlink" href="#pyicane.DataMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin with attributes and methods shared by data-type classes.</p>
+<dd><p>Mixin abstract class with attributes and methods shared by data-type        classes.</p>
 <dl class="attribute">
 <dt id="pyicane.DataMixin.label_">
 <tt class="descname">label_</tt><em class="property"> str</em><a class="headerlink" href="#pyicane.DataMixin.label_" title="Permalink to this definition">¶</a></dt>
-<dd><p>singular label of the converted entity. Ex: &#8220;data&#8221;</p>
+<dd><p>singular label of the converted entity. Ex: &#8220;data&#8221;.                     Defaults to None in the parent class.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -351,8 +351,8 @@
 <em class="property">class </em><tt class="descclassname">pyicane.</tt><tt class="descname">TimeSeries</tt><big>(</big><em>dict_</em><big>)</big><a class="headerlink" href="#pyicane.TimeSeries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class mapping icane.es &#8216;TimeSeries&#8217; entity.  A TimeSeries        represents a set of ordered observations on a quantitative        characteristic of an individual or collective phenomenon taken at        different points of time. Lists of elements of this class are returned        adequately classified and nested in a structure with groups, themes        and statistics without semantic value.</p>
 <dl class="method">
-<dt id="pyicane.TimeSeries.data_to_dataframe">
-<tt class="descname">data_to_dataframe</tt><big>(</big><big>)</big><a class="headerlink" href="#pyicane.TimeSeries.data_to_dataframe" title="Permalink to this definition">¶</a></dt>
+<dt id="pyicane.TimeSeries.data_as_dataframe">
+<tt class="descname">data_as_dataframe</tt><big>(</big><big>)</big><a class="headerlink" href="#pyicane.TimeSeries.data_as_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert TimeSeries data into pandas.DataFrame object.</p>
 <p>Returns:
 Python Pandas Dataframe.</p>
@@ -364,11 +364,11 @@ Python Pandas Dataframe.</p>
 <dd><p>Retrieve all nodes of type dataset given its category, section             and subsection.
 :param category_uri_tag: uri_tag (ie, label) of the category.
 :type category_uri_tag: string
-:param section_uri_tag: uri_tag (ie, label) of the                  section. If present, it must follow a category uri-tag or an                  exception will be thrown by the restful API.
+:param section_uri_tag: uri_tag (ie, label) of the                  section. If present, it must follow an existing category                  uri-tag or an exception will be thrown by the restful API.
 :type section_uri_tag: string, optional
-:param subsection_uri_tag: uri_tag (ie, label) of                  the subsection. If present, it must follow a section uri-tag                  or an exception will be thrown by the restful API.
+:param subsection_uri_tag: uri_tag (ie, label) of                  the subsection. If present, it must follow an existing                  section uri-tag or an exception will be thrown by the                  restful API.
 :type subsection_uri_tag: string, optional
-:param data_set_uri_tag: uri_tag (ie, label) of the                  data-set. If present, it must follow a subsection uri-tag or                  an exception will be thrown by the restful API.
+:param data_set_uri_tag: uri_tag (ie, label) of the                  data-set. If present, it must follow am existing subsection                  uri-tag or an exception will be thrown by the restful API.
 :type data_set_uri_tag: string, optional
 :param node_type: specifies the node type to return.                  Accepted values: &#8216;time-series&#8217;, &#8216;data-set&#8217;, &#8216;folder&#8217;,&#8217;theme&#8217;,                 etc. See node_type class for more info. Defaults to None.
 :type node_type: string, optional
@@ -392,9 +392,9 @@ Python Pandas Dataframe.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data_updated</strong> (<em>string, optional</em>) &#8211; last data update date. Both                                              arguments are mutually exclusive.</li>
+<li><strong>data_updated</strong> (<em>string, optional</em>) &#8211; last data update date. Both                                               arguments are mutually exclusive.</li>
 <li><strong>metadata_updated</strong> (<em>string, optional</em>) &#8211; last metadata update date.
-Both arguments are mutually                                                  exclusive.</li>
+Both arguments are mutually                                                   exclusive.</li>
 </ul>
 </td>
 </tr>
@@ -485,8 +485,8 @@ Both arguments are mutually                                                  exc
 </dd></dl>
 
 <dl class="method">
-<dt id="pyicane.TimeSeries.metadata_to_dataframe">
-<tt class="descname">metadata_to_dataframe</tt><big>(</big><big>)</big><a class="headerlink" href="#pyicane.TimeSeries.metadata_to_dataframe" title="Permalink to this definition">¶</a></dt>
+<dt id="pyicane.TimeSeries.metadata_as_dataframe">
+<tt class="descname">metadata_as_dataframe</tt><big>(</big><big>)</big><a class="headerlink" href="#pyicane.TimeSeries.metadata_as_dataframe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert TimeSeries metadata digest into pandas.DataFrame object.</p>
 <p>Returns:
 Python Pandas Dataframe.</p>
@@ -510,8 +510,8 @@ Python Pandas Dataframe.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>section_uri_tag</strong> (<em>string, optional</em>) &#8211; uri_tag (ie, label) of the section                                          to be added as path parameter to the                                          URI to be requested. Defaults to None.</li>
-<li><strong>subsection_uri_tag</strong> (<em>string, optional</em>) &#8211; uri_tag (ie, label) of the                                             subsection to be added as path                                             parameter to the URI to be                                             requested. Must follow a section                                             uri_tag or an exception will be                                             thrown by the restful API.                                             Defaults to None.</li>
-<li><strong>dataset_uri_tag</strong> (<em>string, optional</em>) &#8211; uri_tag (ie, label) of the dataset                                             to be added as path parameter to                                             the URI to be requested. Must                                             follow a subsection uri_tag or an                                             exception will be thrown by the                                             restful API. Defaults to None.</li>
+<li><strong>subsection_uri_tag</strong> (<em>string, optional</em>) &#8211; uri_tag (ie, label) of the                                             subsection to be added as path                                             parameter to the URI to be                                             requested. Must follow an                                             existing section uri_tag or an                                             exception will be thrown by the                                             restful API. Defaults to None.</li>
+<li><strong>dataset_uri_tag</strong> (<em>string, optional</em>) &#8211; uri_tag (ie, label) of the dataset                                             to be added as path parameter to                                             the URI to be requested. Must                                             follow an existing subsection                                             uri_tag or an exception will be                                             thrown by the restful API.                                             Defaults to None.</li>
 </ul>
 </td>
 </tr>
@@ -554,8 +554,7 @@ conveniently concatenated query string params to                             con
 <dl class="function">
 <dt id="pyicane.flatten_data">
 <tt class="descclassname">pyicane.</tt><tt class="descname">flatten_data</tt><big>(</big><em>data</em>, <em>record=None</em><big>)</big><a class="headerlink" href="#pyicane.flatten_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Flatten a nested dict generated from a deserialized JSON object /
-provided by ICANE&#8217;s Restful data API.</p>
+<dd><p>Flatten a nested dict generated from a deserialized JSON object        provided by ICANE&#8217;s Restful data API.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -584,7 +583,7 @@ A list representing a row in a flattened matrix.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>dict</em>) &#8211; a dictionary or list of dictionaries containing nested                    TimeSeries objects.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Yields :</th><td class="field-body"><em>Python List of node_digest_model elements: A list with the most                                                  relevant metadata for a                                                  given node or list of nodes                                                  and their children in a                                                  flattened format.</em></td>
+<tr class="field-even field"><th class="field-name">Yields :</th><td class="field-body"><em>Python List of node_digest_model elements: A list with the most                                                  relevant metadata for a                                                  given node or list of nodes                                                  with node type equal to                                                  &#8216;time-series&#8217;, &#8216;document&#8217; or                                                  &#8216;olap-native&#8217; in flattened                                                  format.</em></td>
 </tr>
 </tbody>
 </table>
@@ -593,7 +592,7 @@ A list representing a row in a flattened matrix.</p>
 <dl class="function">
 <dt id="pyicane.node_digest_model">
 <tt class="descclassname">pyicane.</tt><tt class="descname">node_digest_model</tt><big>(</big><em>node</em><big>)</big><a class="headerlink" href="#pyicane.node_digest_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extracts plain relevant metadata fields only.</p>
+<dd><p>Extracts plain relevant metadata fields only. Relevant metadata has        been selected by ICANE&#8217;s technical staff.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -609,7 +608,7 @@ A list representing a row in a flattened matrix.</p>
 <dl class="function">
 <dt id="pyicane.request">
 <tt class="descclassname">pyicane.</tt><tt class="descname">request</tt><big>(</big><em>path</em><big>)</big><a class="headerlink" href="#pyicane.request" title="Permalink to this definition">¶</a></dt>
-<dd><p>Send a request to a given URL accepting JSON format and return a JSON        converted Python object. If no &#8220;<a class="reference external" href="http://">http://</a>&#8221; protocol is specified,        BASE_URL is used in the request.</p>
+<dd><p>Send a request to a given URL accepting JSON format and return a        deserialized Python object. If no &#8220;<a class="reference external" href="http://">http://</a>&#8221; protocol is specified,        BASE_URL is used in the request.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -626,11 +625,8 @@ A list representing a row in a flattened matrix.</p>
 <tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><ul class="first last simple">
 <li><tt class="xref py py-exc docutils literal"><span class="pre">HTTPError</span></tt> &#8211; 
 the HTTP error returned by the requested server.</li>
-<li><tt class="xref py py-exc docutils literal"><span class="pre">URLError</span></tt> &#8211; 
-the handlers of urllib2 this exception (or derived exceptions).</li>
-<li><strong>when they run into a problem.</strong> &#8211;</li>
-<li><tt class="xref py py-exc docutils literal"><span class="pre">HTTPException</span></tt> &#8211; 
-generic http exception.</li>
+<li><tt class="xref py py-exc docutils literal"><span class="pre">InvalidURL</span></tt> &#8211; 
+an invalid URL has been requested.</li>
 <li><tt class="xref py py-exc docutils literal"><span class="pre">Exception</span></tt> &#8211; 
 generic exception.</li>
 </ul>

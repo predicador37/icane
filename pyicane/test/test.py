@@ -22,8 +22,7 @@ class TestGenericMethods(unittest.TestCase):
 
     def test_request(self):
         """ Test pyicane.request() """
-        section_instance = pyicane.Section(pyicane.request(
-                                           'section/economy'))
+        section_instance = pyicane.Section(pyicane.request('section/economy'))
         self.assertTrue(section_instance.title.encode("utf-8") == 'Economía')
         self.assertRaises(requests.exceptions.HTTPError,
                           pyicane.request, 'section/economic')
@@ -66,9 +65,10 @@ class TestGenericMethods(unittest.TestCase):
                         '/economy/labour-market')
 
         self.assertTrue(pyicane.add_path_params('economy', 'labour-market',
-                        'active-population-survey-bases') ==
-                        '/economy/labour-market/active-population-survey-'
-                        'bases')
+                                                'active-population-survey-'
+                                                'bases') == '/economy/labour-'
+                        'market/active-population-'
+                        'survey-bases')
 
 
 class TestCategory(unittest.TestCase):
@@ -130,8 +130,8 @@ class TestData(unittest.TestCase):
 
     def test_get_last_updated(self):
         """ Test pyicane.Data.get_last_updated()"""
-        self.assertTrue(datetime.strptime(
-                        pyicane.Data.get_last_updated(), '%d/%m/%Y'))
+        self.assertTrue(datetime.strptime(pyicane.Data.get_last_updated(),
+                                          '%d/%m/%Y'))
 
     def test_get_last_updated_millis(self):
         """ Test pyicane.Data.get_last_updated_millis()"""
@@ -182,8 +182,7 @@ class TestDataSet(unittest.TestCase):
     def test_data_set(self):
         """ Test pyicane.DataSet class"""
         self.assertRaises(ValueError, pyicane.DataSet, 'not a json object')
-        self.assertEqual(pyicane.DataSet(
-                         pyicane.request('data-set/87')).title,
+        self.assertEqual(pyicane.DataSet(pyicane.request('data-set/87')).title,
                          'Empleo de las personas con discapacidad')
 
     def test_get(self):
@@ -214,8 +213,8 @@ class TestLink(unittest.TestCase):
     def test_link(self):
         """ Test pyicane.Link class"""
         self.assertRaises(ValueError, pyicane.Link, 'not a json object')
-        self.assertEqual(pyicane.Link(
-                         pyicane.request('link/472')).title, 'DBpedia')
+        self.assertEqual(pyicane.Link(pyicane.request('link/472')).title,
+                         'DBpedia')
 
     def test_get(self):
         """ Test pyicane.Link.get()"""
@@ -238,8 +237,8 @@ class TestLinkType(unittest.TestCase):
     def test_link_type(self):
         """ Test pyicane.LinkType class"""
         self.assertRaises(ValueError, pyicane.LinkType, 'not a json object')
-        self.assertEqual(pyicane.LinkType(
-                         pyicane.request('link-type/1')).title, 'HTTP')
+        self.assertEqual(pyicane.LinkType(pyicane.request('link-type/1')).
+                         title, 'HTTP')
 
     def test_get(self):
         """ Test pyicane.LinkType.get()"""
@@ -263,8 +262,8 @@ class TestMeasure(unittest.TestCase):
     def test_measure(self):
         """ Test pyicane.Measure class"""
         self.assertRaises(ValueError, pyicane.Measure, 'not a json object')
-        self.assertEqual(pyicane.Measure(
-                         pyicane.request('measure/1')).title, 'Parados')
+        self.assertEqual(pyicane.Measure(pyicane.request('measure/1')).title,
+                         'Parados')
 
     def test_get(self):
         """ Test pyicane.Measure.get()"""
@@ -287,8 +286,8 @@ class TestMetadata(unittest.TestCase):
 
     def test_get_last_updated(self):
         """ Test pyicane.pyicane.get_last_updated()"""
-        self.assertTrue(datetime.strptime(
-                        pyicane.Metadata.get_last_updated(), '%d/%m/%Y'))
+        self.assertTrue(datetime.strptime(pyicane.Metadata.get_last_updated(),
+                                          '%d/%m/%Y'))
 
     def test_get_last_updated_millis(self):
         """ Test pyicane.pyicane.get_last_updated_millis()"""
@@ -544,26 +543,26 @@ class TestTimeSeries(unittest.TestCase):
         self.assertEqual(pyicane.TimeSeries.get(32, inactive=True).uriTag,
                          'childbirths')
 
-    def test_data_to_dataframe(self):
-        """ Test pyicane.TimeSeries.data_to_dataframe()"""
+    def test_data_as_dataframe(self):
+        """ Test pyicane.TimeSeries.data_as_dataframe()"""
         time_series = pyicane.TimeSeries.get('quarterly-accounting-' +
                                              'cantabria-base-2008-current-'
                                              'prices')
-        data_frame = time_series.data_to_dataframe()
+        data_frame = time_series.data_as_dataframe()
         self.assertTrue(len(data_frame) >= 2349)
 
-    def test_metadata_to_dataframe(self):
-        """ Test pyicane.TimeSeries.metadata_to_dataframe()"""
+    def test_metadata_as_dataframe(self):
+        """ Test pyicane.TimeSeries.metadata_as_dataframe()"""
         time_series = pyicane.TimeSeries.get('quarterly-accounting-' +
                                              'cantabria-base-2008-current-'
                                              'prices')
         node_list = pyicane.TimeSeries.find_all('regional-data',
                                                 'economy',
                                                 'labour-market')
-        dataframe = time_series.metadata_to_dataframe()
+        dataframe = time_series.metadata_as_dataframe()
         metadata_array = []
         for node in node_list:
-            metadata_array.append(node.metadata_to_dataframe())
+            metadata_array.append(node.metadata_as_dataframe())
         metadata_df = metadata_array[0].append(metadata_array[1:])
         self.assertTrue(len(metadata_df) >= 200)
         self.assertEqual('Precios corrientes', dataframe.iloc[0]['title'])
@@ -646,10 +645,11 @@ class TestTimeSeries(unittest.TestCase):
         self.assertTrue(pyicane.TimeSeries.get('unemployment-benefits')
                         in data_set_list)
         self.assertTrue(pyicane.TimeSeries.get('active-population-aged-16-'
-                        'more-gender-age-group-activity-base-2011')
+                                               'more-gender-age-group-activity'
+                                               '-base-2011')
                         in time_series_list)
         self.assertTrue(pyicane.TimeSeries.get('employment-unemployment-'
-                        'statistics')
+                                               'statistics')
                         in node_list)
 
     def test_get_by_category_and_section_and_subsection_and_dataset(self):
@@ -661,7 +661,8 @@ class TestTimeSeries(unittest.TestCase):
                                                 'unemployment-benefits')
         self.assertTrue(len(node_list) >= 2)
         self.assertTrue(pyicane.TimeSeries.get('unemployment-benefits-'
-                        'requests-beneficiaries-expenditures')
+                                               'requests-beneficiaries-'
+                                               'expenditures')
                         in node_list)
 
     def test_get_datasets(self):
