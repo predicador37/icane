@@ -639,7 +639,15 @@ class TimeSeries(BaseEntity):
         headers = list(resource['headers'])
         headers.append(unicode('Valor'))
         data.columns = headers
-        time_series = data.set_index([unicode(headers[len(headers)-2])])
+        time_series = pd.DataFrame()
+        for element in headers:
+            if element in ['Año', 'Trimestre', 'Mes']:
+                print "time-series"
+                time_series = data.set_index([unicode(element)])
+            elif element == 'Municipios':
+                index = 'Municipios'
+        if time_series.empty:
+            time_series = data.set_index(index)
         return time_series
 
     def metadata_as_dataframe(self):
