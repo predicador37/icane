@@ -11,6 +11,8 @@ def main():
     noja_plot = noja.plot()
     arnuero.plot(ax=noja_plot,
                  title='Population evolution in Noja vs Arnuero')
+    print noja
+    print arnuero
     plt.show()
 
 if __name__ == '__main__':
