@@ -11,7 +11,7 @@ setup(
     license='Apache License 2.0',
     description='Python wrapper for ICANE Statistical Data and Metadata API',
     long_description=open('README.rst').read(),
-    install_requires=['pandas'],
+    install_requires=['pandas', 'requests'],
     test_suite='pyicane.test',
     keywords=['restful', 'json', 'statistics', 'dataframe', 'wrapper'],
     classifiers=[

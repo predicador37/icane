@@ -643,8 +643,7 @@ class TimeSeries(BaseEntity):
         data.columns = headers
         time_series = pd.DataFrame()
         for element in headers:
-            if element in ['Año', 'Trimestre', 'Mes']:
-                print "time-series"
+            if element.encode('utf-8') in ['Año', 'Trimestre', 'Mes']:
                 time_series = data.set_index([unicode(element)])
             elif element == 'Municipios':
                 index = 'Municipios'
