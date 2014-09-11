@@ -39,7 +39,7 @@ Conversion to dataframe is a useful feature::
     from pyicane import pyicane
 
     time_series = pyicane.TimeSeries.get('census-series-1900-2001')
-    print time_series.data_to_dataframe()
+    print time_series.data_as_dataframe()
 
 Get Time Series Metadata in a Dataframe
 ---------------------------------------
@@ -48,7 +48,7 @@ Let's check the most relevant metadata::
     from pyicane import pyicane
 
     time_series = pyicane.TimeSeries.get('census-series-1900-2001')
-    print time_series.metadata_to_dataframe()
+    print time_series.metadata_as_dataframe()
 
 Get last updated data
 ---------------------
