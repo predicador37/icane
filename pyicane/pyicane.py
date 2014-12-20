@@ -17,6 +17,7 @@ import requests
 import logging
 import inspect
 from datetime import datetime
+from collections import OrderedDict
 import pandas as pd
 import abc
 
@@ -62,9 +63,15 @@ def request(path):
         LOGGER.error('Generic exception: ' + traceback.format_exc())
         raise
     else:
-        response = requested_object.json()
+        response = requested_object.json(object_pairs_hook=OrderedDict)
         return response
 
+def acronym(node):
+    if 'dataSet' in node and node['dataSet']:
+        if 'acronym' in node['dataSet']:
+            return node['dataSet']['acronym']
+    else:
+        return ''
 
 def node_digest_model(node):
     """Extracts plain relevant metadata fields only. Relevant metadata has \
@@ -83,6 +90,7 @@ def node_digest_model(node):
         data_update = '0000'
     else:
         data_update = node.dataUpdate
+
     if node.dataSet is None:
         dataset_title = ''
     else:
@@ -100,9 +108,10 @@ def node_digest_model(node):
     else:
         sources_label = node.sources[0].label
 
-    return [node.id, node.title, node.active, node.uri,
-            node.metadataUri, node.resourceUri,
-            node.documentation, node.methodology,
+    return [node.id, node.title, node.nodeType.title, node.active,
+            acronym(node), node.uri, node.metadataUri, node.resourceUri,
+            node.documentation,
+            node.methodology,
             node.mapScope, node.referenceResources,
             node.description, node.theme, node.language,
             node.publisher, node.license, node.topics,
@@ -118,7 +127,7 @@ def node_digest_model(node):
             node.subsection.title,
             node.subsection.section.title,
             node.category.title, dataset_title,
-            periodicity_title, node.nodeType.title,
+            periodicity_title,
             reference_area_title, sources_label,
             str(', '.join([': '.join((x.title.encode('utf-8'),
                                       x.unit.encode('utf-8'))) for x in
@@ -660,9 +669,11 @@ class TimeSeries(BaseEntity):
         table = []
         for node in flatten_metadata(self):
             table.append(node)
-        metadata = pd.DataFrame(table, columns=['id', 'title', 'active', 'uri',
+        metadata = pd.DataFrame(table, columns=['id', 'title', 'nodeType',
+                                                'active', 'acronym', 'uri',
                                                 'metadataUri', 'resourceUri',
-                                                'documentation', 'methodology',
+                                                'documentation',
+                                                'methodology',
                                                 'mapScope',
                                                 'referenceResources',
                                                 'description', 'theme',
@@ -676,7 +687,7 @@ class TimeSeries(BaseEntity):
                                                 'lastUpdated', 'subsection',
                                                 'section', 'category',
                                                 'dataset', 'periodicty',
-                                                'nodeType', 'referenceArea',
+                                                'referenceArea',
                                                 'sources', 'measures',
                                                 'apiUris'])
         return metadata
@@ -812,8 +823,8 @@ class TimeSeries(BaseEntity):
     def find_all(cls, category_uri_tag, section_uri_tag=None,
                  subsection_uri_tag=None, data_set_uri_tag=None,
                  node_type_uri_tag=None, inactive=None):
-        """Retrieve all nodes of type dataset given its category, section \
-            and subsection.
+        """Retrieve all nodes given its category, section, subsection or \
+           dataset.
             Args:
              category_uri_tag (string): uri_tag (ie, label) of the category.
              section_uri_tag (string, optional): uri_tag (ie, label) of the \

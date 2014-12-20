@@ -571,15 +571,17 @@ class TestTimeSeries(unittest.TestCase):
 
     def test_get_parent(self):
         """ Test pyicane.TimeSeries.get_parent()"""
-        self.assertEqual(pyicane.TimeSeries.get_parent('terrain-series'),
-                         pyicane.TimeSeries.get('terrain'))
+        self.assertEqual(pyicane.TimeSeries.get_parent('municipal-'
+                                                       'terrain-series'),
+                         pyicane.TimeSeries.get('municipal-terrain'))
         self.assertEqual(pyicane.TimeSeries.get_parent(4876),
                          pyicane.TimeSeries.get(4106))
 
     def test_get_parents(self):
         """ Test pyicane.TimeSeries.get_parents()"""
-        self.assertTrue(pyicane.TimeSeries.get('terrain')
-                        in pyicane.TimeSeries.get_parents('terrain-series'))
+        self.assertTrue(pyicane.TimeSeries.get('municipal-terrain')
+                        in pyicane.TimeSeries.get_parents('municipal-'
+                                                          'terrain-series'))
         self.assertTrue(pyicane.TimeSeries.get(4106)
                         in pyicane.TimeSeries.get_parents(4876))
 
@@ -609,7 +611,7 @@ class TestTimeSeries(unittest.TestCase):
                                                        '-series')
         self.assertTrue(len(data_set_list) > 7)
         self.assertTrue(len(time_series_list) > 35)
-        self.assertTrue(pyicane.TimeSeries.get('terrain-series')
+        self.assertTrue(pyicane.TimeSeries.get('municipal-terrain-series')
                         in time_series_list)
         self.assertTrue(pyicane.TimeSeries.get('elections-municipal')
                         in data_set_list)
