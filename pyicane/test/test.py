@@ -7,6 +7,8 @@ import unittest
 import logging
 import requests
 from datetime import datetime
+import pandas as pd
+from collections import OrderedDict
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -16,9 +18,10 @@ REQUESTS_LOG.setLevel(logging.WARNING)
 
 class TestGenericMethods(unittest.TestCase):
     # pylint: disable=R0904
+
     """ Test Case for metadata module methods """
     def setUp(self):
-        self.node_digest_fields = 34
+        self.node_digest_fields = 35
 
     def test_request(self):
         """ Test pyicane.request() """
@@ -34,7 +37,7 @@ class TestGenericMethods(unittest.TestCase):
                                                'prices')
         node_digest = pyicane.node_digest_model(node_instance)
         self.assertTrue(len(node_digest) == self.node_digest_fields)
-        self.assertTrue(node_digest[22] == '31/10/2012')
+        self.assertTrue(node_digest[30] == 'Trimestral')
 
     def test_flatten_metadata(self):
         """ Test pyicane.flatten_metadata() """
@@ -45,8 +48,17 @@ class TestGenericMethods(unittest.TestCase):
         second_record_uri_tag = 'active-population-survey-bases'
         records = pyicane.flatten_metadata(node_list)
         self.assertTrue(first_record_name == next(records)[1].encode("utf-8"))
-        self.assertTrue(second_record_uri_tag == next(records)[17].
+        self.assertTrue(second_record_uri_tag == next(records)[19].
                         encode("utf-8"))
+
+    def test_flatten_data(self):
+        """ Test pyicane.flatten_data() """
+        resource = requests.get('http://www.icane.es/data/api/municipal-'
+                                'register-annual-review-'
+                                'municipality.json'
+                                ).json(object_pairs_hook=OrderedDict)
+        data = pd.DataFrame(list(pyicane.flatten_data(resource)))
+        '''TODO: finish test'''
 
     def test_add_query_string_params(self):
         """ Test pyicane.add_query_string_params() """
@@ -550,6 +562,7 @@ class TestTimeSeries(unittest.TestCase):
                                              'prices')
         data_frame = time_series.data_as_dataframe()
         self.assertTrue(len(data_frame) >= 2349)
+        data_frame.to_csv('./trimestral.csv', sep='\t', encoding='utf-8')
 
     def test_metadata_as_dataframe(self):
         """ Test pyicane.TimeSeries.metadata_as_dataframe()"""
@@ -564,7 +577,7 @@ class TestTimeSeries(unittest.TestCase):
         for node in node_list:
             metadata_array.append(node.metadata_as_dataframe())
         metadata_df = metadata_array[0].append(metadata_array[1:])
-        self.assertTrue(len(metadata_df) >= 200)
+        self.assertTrue(len(metadata_df) >= 198)
         self.assertEqual('Precios corrientes', dataframe.iloc[0]['title'])
         self.assertEqual('ajuste,trimestre,sector',
                          dataframe.iloc[0]['automatizedTopics'])

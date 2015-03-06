@@ -66,12 +66,14 @@ def request(path):
         response = requested_object.json(object_pairs_hook=OrderedDict)
         return response
 
+
 def acronym(node):
     if 'dataSet' in node and node['dataSet']:
         if 'acronym' in node['dataSet']:
             return node['dataSet']['acronym']
     else:
         return ''
+
 
 def node_digest_model(node):
     """Extracts plain relevant metadata fields only. Relevant metadata has \
@@ -192,29 +194,22 @@ def flatten_data(data, record=None):
 
     if data.get('data'):  # first level
         record = []
-        row = []
-        for j in sorted(list(flatten_data(data['data'], record))):
+        for j in list(flatten_data(data['data'], record)):
             yield j
     else:  # other levels
-        for k in sorted(list(data)):
+        for k in list(data):
             if isinstance(data[k], dict):
                 record.append(k)
-                # try:
-
-                for i in sorted(list(flatten_data(data[k], record))):
-                    if len(record) == 1:
-                        record.pop()
+                for i in list(flatten_data(data[k], record)):
                     yield i
-                # nexcept Exception:
-                # pass
             else:  # last level
+
                 row = list(record)
                 row.append(k)
                 row.append(data[k])
                 yield row
-        if record:
+        if len(record) != 0:
             record.pop()
-
 
 def add_query_string_params(node_type=None, inactive=None):
     """Add query string params to a string representing part of a URI.
@@ -296,8 +291,8 @@ def add_path_params(section_uri_tag=None, subsection_uri_tag=None,
 
 
 class BaseEntity(dict):
-    """Abstract class to convert deserialized JSON into a Python object. Basic \
-       skeleton for almost all the module classes.
+    """Abstract class to convert deserialized JSON into a Python object. Basic\
+        skeleton for almost all the module classes.
 
     Attributes:
       label_ (str): singular label of the converted entity. Ex: "category"
@@ -645,6 +640,7 @@ class TimeSeries(BaseEntity):
             Returns:
             Python Pandas Dataframe.
         """
+
         resource = request(self.apiUris[3].uri)  # third element is icane json
         data = pd.DataFrame(list(flatten_data(resource)))
         headers = list(resource['headers'])

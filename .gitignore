@@ -45,5 +45,5 @@ docs/build/
 
 # Spyder project
 .spyderproject
-
-
+.idea
+examples/example2.py
