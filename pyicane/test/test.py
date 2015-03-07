@@ -57,8 +57,9 @@ class TestGenericMethods(unittest.TestCase):
                                 'register-annual-review-'
                                 'municipality.json'
                                 ).json(object_pairs_hook=OrderedDict)
-        data = pd.DataFrame(list(pyicane.flatten_data(resource)))
-        '''TODO: finish test'''
+        data = list(pyicane.flatten_data(resource))
+        self.assertTrue(data[-1][3] == -0.55)
+        self.assertTrue(data[0][3] == 2646.0)
 
     def test_add_query_string_params(self):
         """ Test pyicane.add_query_string_params() """
